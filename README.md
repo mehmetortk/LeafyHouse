@@ -1,16 +1,2 @@
-# leafy_house
-
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Leafy House
+This powerful application revolutionizes the way you care for your home plants by leveraging advanced Internet of Things (IoT) technology. With its intuitive interface, you can take complete control of your indoor garden, automating essential tasks like watering, lighting adjustments, and environmental monitoring. Experience the future of gardening as you effortlessly ensure your plants receive exactly what they need to thrive. Say goodbye to guesswork and hello to confident, hassle-free plant care!
