@@ -4,6 +4,12 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Bu uygulama fotoğraf çekmek için kameranızı kullanır.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Bu uygulama galerinizden fotoğraf seçmek için erişim ister.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Bu uygulama fotoğrafları galerinizde saklamak için izin ister.</string>
 	<key>CFBundleDisplayName</key>
 	<string>Leafy House</string>
 	<key>CFBundleExecutable</key>

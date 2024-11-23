@@ -29,6 +29,7 @@ class _PlantDetailViewState extends State<PlantDetailView> {
       type: typeController.text,
       moisture: plant.moisture,
       health: plant.health,
+      imageUrl: plant.imageUrl,
     );
 
     Provider.of<PlantsViewModel>(context, listen: false).updatePlant(updatedPlant);

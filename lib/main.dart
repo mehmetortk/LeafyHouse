@@ -1,3 +1,4 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/material.dart';
 import 'package:leafy_house/firebase_options.dart';
 import 'views/auth/loginView.dart';
@@ -12,7 +13,6 @@ import 'package:provider/provider.dart';
 import 'viewmodels/plants_viewmodel.dart';
 import 'views/homepage/plantsView.dart';
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -23,7 +23,9 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => PlantsViewModel()),
       ],
-      child: MyApp(),),);
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

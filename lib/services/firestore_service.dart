@@ -12,8 +12,7 @@ class FirestoreService {
         .get();
 
     return querySnapshot.docs.map((doc) {
-      final data =
-          doc.data() as Map<String, dynamic>; // Firestore'dan gelen veri
+      final data = doc.data() as Map<String, dynamic>; // Firestore'dan gelen veri
       return Plant.fromFirestore(data, doc.id); // Veri modeli dönüştürme
     }).toList();
   }
@@ -29,6 +28,7 @@ class FirestoreService {
       type: plant.type,
       moisture: plant.moisture,
       health: plant.health,
+      imageUrl: plant.imageUrl,
     );
   }
 

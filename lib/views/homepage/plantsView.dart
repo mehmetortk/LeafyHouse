@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../viewmodels/plants_viewmodel.dart';
 import '../../models/plant.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:io';
 
 class PlantsView extends StatefulWidget {
   @override
@@ -20,6 +21,18 @@ class _PlantsViewState extends State<PlantsView> {
     _viewModel.fetchPlants(userId); // Kullanıcıya özel bitkileri getir
   }
 
+  Future<void> _deleteLocalImage(String imagePath) async {
+    try {
+      final file = File(imagePath);
+      if (await file.exists()) {
+        await file.delete();
+        print("Yerel görsel silindi: $imagePath");
+      }
+    } catch (e) {
+      print("Görsel silinirken bir hata oluştu: $e");
+    }
+  }
+
   void _showDeleteConfirmationDialog(BuildContext context, Plant plant) {
     showDialog(
       context: context,
@@ -35,10 +48,14 @@ class _PlantsViewState extends State<PlantsView> {
               child: Text("İptal"),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop(); // Dialog'u kapat
                 if (plant.id != null) {
-                  _viewModel.deletePlant(plant.id!); // Bitkiyi sil
+                  // Firestore'dan sil
+                  _viewModel.deletePlant(plant.id!);
+
+                  // Yerel dosyadan sil
+                  await _deleteLocalImage(plant.imageUrl);
                 }
               },
               child: Text("Evet"),
@@ -77,6 +94,10 @@ class _PlantsViewState extends State<PlantsView> {
             itemBuilder: (context, index) {
               final plant = plants[index];
               return ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: FileImage(File(plant.imageUrl)),
+                  radius: 30,
+                ),
                 title: Text(plant.name),
                 subtitle: Text("Tür: ${plant.type}"),
                 trailing: Row(
