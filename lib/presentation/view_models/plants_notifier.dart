@@ -5,8 +5,8 @@ import '../../domain/usecases/fetch_plants.dart';
 import '../../domain/usecases/add_plant.dart';
 import '../../domain/usecases/delete_plant.dart';
 import '../../domain/usecases/update_plant.dart';
+import '../../domain/usecases/fetch_plant_by_id.dart';
 import '../../core/di/dependency_injection.dart';
-import '../../domain/usecases/add_plant_with_image.dart';
 
 class PlantsState {
   final List<Plant> plants;
@@ -37,25 +37,49 @@ class PlantsNotifier extends StateNotifier<PlantsState> {
   final AddPlant addPlant;
   final DeletePlant deletePlant;
   final UpdatePlant updatePlant;
-  final AddPlantWithImage addPlantWithImage; // Use-Case olarak tanımlı
+  final FetchPlantById fetchPlantById;
 
   PlantsNotifier({
     required this.fetchPlants,
     required this.addPlant,
     required this.deletePlant,
     required this.updatePlant,
-    required this.addPlantWithImage,
+    required this.fetchPlantById,
   }) : super(PlantsState());
 
-  Future<void> addPlantWithImageFile(Plant plant, File? imageFile) async {
+  Future<void> loadPlants(String userId) async {
+    print("Starting loadPlants for userId: $userId");
+    try {
+      state = state.copyWith(isLoading: true);
+      print("Fetching plants...");
+      final plants = await fetchPlants(userId);
+      print("Plants fetched: $plants");
+      state = state.copyWith(plants: plants, isLoading: false);
+    } catch (e) {
+      print("Error in loadPlants: $e");
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  Future<Plant?> getPlantById(String plantId) async {
+    try {
+      final plant = await fetchPlantById(plantId);
+      return plant;
+    } catch (e) {
+      state = state.copyWith(errorMessage: e.toString());
+      return null;
+    }
+  }
+
+  Future<void> addNewPlant(Plant plant, File? imageFile) async {
     // Method yeniden adlandırıldı
     state = state.copyWith(isLoading: true);
     try {
-      await addPlantWithImage(plant, imageFile); // Use-Case kullanımı
-      state = state.copyWith(
-        plants: [...state.plants, plant],
-        isLoading: false,
-      );
+      await addPlant(plant, imageFile); // Use-Case kullanımı
+      await loadPlants(plant.userId);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -64,37 +88,35 @@ class PlantsNotifier extends StateNotifier<PlantsState> {
     }
   }
 
- Future<void> loadPlants(String userId) async {
-  print("Starting loadPlants for userId: $userId");
-  try {
-    state = state.copyWith(isLoading: true);
-    print("Fetching plants...");
-    final plants = await fetchPlants(userId);
-    print("Plants fetched: $plants");
-    state = state.copyWith(plants: plants, isLoading: false);
-  } catch (e) {
-    print("Error in loadPlants: $e");
-    state = state.copyWith(
-      isLoading: false,
-      errorMessage: e.toString(),
-    );
-  }
-}
-
-
-
-  Future<void> addNewPlant(Plant plant) async {
+  Future<void> updateExistingPlant(Plant plant) async {
     state = state.copyWith(isLoading: true);
     try {
-      await addPlant(plant);
-      state =
-          state.copyWith(plants: [...state.plants, plant], isLoading: false);
+      await updatePlant(plant);
+      await loadPlants(plant.userId);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString(),
       );
     }
+  }
+
+  Future<void> removePlant(String plantId, Plant plant) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      await deletePlant(plantId);
+      await loadPlants(plant.userId);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  // Error mesajını temizlemek için yardımcı metot
+  void clearError() {
+    state = state.copyWith(errorMessage: null);
   }
 }
 
@@ -105,13 +127,13 @@ final plantsProvider =
   final addPlant = ref.watch(addPlantProvider);
   final deletePlant = ref.watch(deletePlantProvider);
   final updatePlant = ref.watch(updatePlantProvider);
-  final addPlantWithImage = ref.watch(addPlantWithImageProvider);
+  final fetchPlantById = ref.watch(fetchPlantByIdProvider);
 
   return PlantsNotifier(
     fetchPlants: fetchPlants,
     addPlant: addPlant,
     deletePlant: deletePlant,
     updatePlant: updatePlant,
-    addPlantWithImage: addPlantWithImage, // Yeni Use-Case
+    fetchPlantById: fetchPlantById,
   );
 });

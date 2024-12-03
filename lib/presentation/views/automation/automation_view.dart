@@ -16,45 +16,43 @@ class AutomationView extends ConsumerStatefulWidget {
 class _AutomationViewState extends ConsumerState<AutomationView> {
   late TextEditingController frequencyController;
   late TextEditingController amountController;
+  late TextEditingController photoFrequencyController;
+
   Plant? plant;
+  bool _controllersInitialized = false;
 
   @override
   void initState() {
     super.initState();
     frequencyController = TextEditingController();
     amountController = TextEditingController();
-  }
+    photoFrequencyController = TextEditingController();
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    final receivedPlant = ModalRoute.of(context)?.settings.arguments as Plant?;
-    if (receivedPlant == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Otomasyon için bir bitki seçilmedi.")),
-        );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final receivedPlant = ModalRoute.of(context)?.settings.arguments as Plant?;
+      if (receivedPlant != null) {
+        setState(() {
+          plant = receivedPlant;
+        });
+        print('AutomationView - Loading settings for plant ID: ${plant!.id}');
+        ref.read(automationProvider.notifier).loadSettings(plant!.id);
+      } else {
+        print('AutomationView - No plant received');
         Navigator.pop(context);
-      });
-    } else {
-      plant = receivedPlant;
-      // Bitki seçildiğinde otomasyon ayarlarını fetch et
-      final automationNotifier = ref.read(automationProvider.notifier);
-      automationNotifier.fetchSettings(plant!.id);
-    }
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final automationState = ref.watch(automationProvider);
 
-    // Ayarlar yüklendiğinde controller'ları güncelle
-    if (automationState.settings != null &&
-        frequencyController.text.isEmpty &&
-        amountController.text.isEmpty) {
+    // Sadece bir kez controller'ları güncelle
+    if (automationState.settings != null && !_controllersInitialized) {
       frequencyController.text = automationState.settings!.frequency.toString();
       amountController.text = automationState.settings!.amount.toString();
+      photoFrequencyController.text = automationState.settings!.photoFrequency.toString();
+      _controllersInitialized = true;
     }
 
     return Scaffold(
@@ -62,68 +60,82 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
         title: Text(plant?.name ?? "Otomasyon Ayarları"),
       ),
       body: automationState.isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: frequencyController,
-                    decoration:
-                        InputDecoration(labelText: "Sulama Sıklığı (gün)"),
-                    keyboardType: TextInputType.number,
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: amountController,
-                    decoration:
-                        InputDecoration(labelText: "Sulama Miktarı (ml)"),
-                    keyboardType: TextInputType.number,
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () async {
-                      // Girişlerin doğruluğunu kontrol et
-                      if (frequencyController.text.isEmpty ||
-                          amountController.text.isEmpty) {
-                        showErrorMessage(
-                            context, "Lütfen tüm alanları doldurun.");
-                        return;
-                      }
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView( // Klavye açıldığında overflow olmaması için
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: frequencyController,
+                      decoration: const InputDecoration(labelText: "Sulama Sıklığı (gün)"),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) => setState(() {}), // TextField değişimini takip et
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: amountController,
+                      decoration: const InputDecoration(labelText: "Sulama Miktarı (ml)"),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) => setState(() {}), // TextField değişimini takip et
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: photoFrequencyController,
+                      decoration: const InputDecoration(labelText: "Fotoğraf Çekme Sıklığı (saat)"),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) => setState(() {}), // TextField değişimini takip et
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        // Girişlerin doğruluğunu kontrol et
+                        if (frequencyController.text.isEmpty ||
+                            amountController.text.isEmpty ||
+                            photoFrequencyController.text.isEmpty) {
+                          showErrorMessage(
+                              context, "Lütfen tüm alanları doldurun.");
+                          return;
+                        }
 
-                      int? frequency = int.tryParse(frequencyController.text);
-                      int? amount = int.tryParse(amountController.text);
+                        int? frequency = int.tryParse(frequencyController.text);
+                        int? amount = int.tryParse(amountController.text);
+                        int? photoFrequency =
+                            int.tryParse(photoFrequencyController.text);
 
-                      if (frequency == null || amount == null) {
-                        showErrorMessage(context, "Geçerli sayılar giriniz.");
-                        return;
-                      }
+                        if (frequency == null ||
+                            amount == null ||
+                            photoFrequency == null) {
+                          showErrorMessage(context, "Geçerli sayılar giriniz.");
+                          return;
+                        }
 
-                      final updatedSettings = AutomationSettings(
-                        plantId: plant!.id,
-                        frequency: frequency,
-                        amount: amount,
-                      );
+                        final updatedSettings = AutomationSettings(
+                          plantId: plant!.id,
+                          frequency: frequency,
+                          amount: amount,
+                          photoFrequency: photoFrequency,
+                        );
 
-                      await ref
-                          .read(automationProvider.notifier)
-                          .saveSettings(updatedSettings);
+                        await ref
+                            .read(automationProvider.notifier)
+                            .saveSettings(updatedSettings);
 
-                      // Güncellenmiş state'i okuyarak kontrol et
-                      final updatedState = ref.read(automationProvider);
+                        // Güncellenmiş state'i okuyarak kontrol et
+                        final updatedState = ref.read(automationProvider);
 
-                      if (updatedState.errorMessage != null) {
-                        showErrorMessage(context,
-                            "Ayarlar kaydedilirken bir hata oluştu: ${updatedState.errorMessage}");
-                      } else {
-                        showSuccessMessage(
-                            context, "Ayarlar başarıyla kaydedildi!");
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: Text("Kaydet"),
-                  ),
-                ],
+                        if (updatedState.errorMessage != null) {
+                          showErrorMessage(context,
+                              "Ayarlar kaydedilirken bir hata oluştu: ${updatedState.errorMessage}");
+                        } else {
+                          showSuccessMessage(
+                              context, "Ayarlar başarıyla kaydedildi!");
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: Text("Kaydet"),
+                    ),
+                  ],
+                ),
               ),
             ),
     );
@@ -131,8 +143,10 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
 
   @override
   void dispose() {
+    _controllersInitialized = false; // Reset the flag
     frequencyController.dispose();
     amountController.dispose();
+    photoFrequencyController.dispose();
     super.dispose();
   }
 }

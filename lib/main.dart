@@ -9,7 +9,8 @@ import 'presentation/views/auth/register_view.dart';
 import 'presentation/views/navigation_bar/navigation_bar.dart';
 import 'presentation/views/plants/plants_view.dart';
 import 'presentation/views/plants/add_plant_view.dart';
-import 'presentation/views/plants/plant_details_view.dart';
+import 'presentation/views/plants/plant_edit_view.dart';
+import 'presentation/views/plants/plant_info_details_view.dart';
 import 'presentation/views/automation/automation_view.dart';
 import 'presentation/views/settings/settings_view.dart';
 
@@ -40,10 +41,11 @@ class MyApp extends StatelessWidget {
         '/register': (context) => RegisterView(),
         '/home': (context) => MainNavigationBar(),
         '/addPlant': (context) => AddPlantView(),
-        '/plantDetail': (context) => PlantDetailView(),
+        '/plantEdit': (context) => PlantEditView(),
         '/automation': (context) => AutomationView(),
         '/plants': (context) => PlantsView(),
         '/settings': (context) => SettingsView(),
+        '/plantInfoDetails': (context) => PlantInfoDetailsView(),
       },
     );
   }

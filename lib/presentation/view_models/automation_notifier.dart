@@ -32,30 +32,52 @@ class AutomationNotifier extends StateNotifier<AutomationState> {
   final FetchAutomationSettings fetchSettings;
   final UpdateAutomationSettings updateSettings;
 
-  AutomationNotifier(
-      {required this.fetchSettings, required this.updateSettings})
-      : super(AutomationState());
+  AutomationNotifier({
+    required this.fetchSettings,
+    required this.updateSettings,
+  }) : super(AutomationState());
+
+  void clearSettings() {
+    print('AutomationNotifier - Clearing settings');
+    state = AutomationState();
+  }
 
   Future<void> loadSettings(String plantId) async {
-    state = state.copyWith(isLoading: true);
     try {
+      print('AutomationNotifier - Loading settings for plant ID: $plantId');
+      state = AutomationState(isLoading: true);
+      
       final settings = await fetchSettings(plantId);
-      state = state.copyWith(settings: settings, isLoading: false);
+      print('AutomationNotifier - Received settings: ${settings.frequency}, ${settings.amount}, ${settings.photoFrequency}');
+      
+      if (mounted) {
+        state = AutomationState(
+          settings: settings,
+          isLoading: false,
+        );
+      }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
+      print('AutomationNotifier - Error loading settings: $e');
+      if (mounted) {
+        state = AutomationState(
+          isLoading: false,
+          errorMessage: e.toString(),
+        );
+      }
     }
   }
 
   Future<void> saveSettings(AutomationSettings settings) async {
-    state = state.copyWith(isLoading: true);
     try {
+      state = AutomationState(isLoading: true, settings: state.settings);
       await updateSettings(settings);
-      state = state.copyWith(settings: settings, isLoading: false);
+      state = AutomationState(
+        settings: settings,
+        isLoading: false,
+      );
     } catch (e) {
-      state = state.copyWith(
+      state = AutomationState(
+        settings: state.settings,
         isLoading: false,
         errorMessage: e.toString(),
       );

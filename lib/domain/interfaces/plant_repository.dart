@@ -5,4 +5,6 @@ abstract class PlantRepository {
   Future<void> addPlant(Plant plant);
   Future<void> deletePlant(String plantId);
   Future<void> updatePlant(Plant plant);
+  Future<Plant?> fetchPlantById(String plantId); // Add this method
+
 }

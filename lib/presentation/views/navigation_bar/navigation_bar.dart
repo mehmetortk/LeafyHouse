@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import '../home_page/home_view.dart';
 import '../plants/plants_view.dart';
-import '../automation/automation_view.dart';
 import '../settings/settings_view.dart'; // Ayarlar sayfasını import edin
 
 class MainNavigationBar extends StatefulWidget {
@@ -18,8 +17,7 @@ class _MainNavigationBarState extends State<MainNavigationBar> {
   final List<Widget> _pages = [
     HomeView(),
     PlantsView(),
-    AutomationView(),
-    SettingsView(), // Ayarlar sayfasını listeye ekleyin
+    SettingsView(), 
   ];
 
   void _onItemTapped(int index) {
@@ -41,10 +39,6 @@ class _MainNavigationBarState extends State<MainNavigationBar> {
           BottomNavigationBarItem(
             icon: Icon(Icons.grass),
             label: 'Bitkilerim',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_remote),
-            label: 'Otomasyon',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

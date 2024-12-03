@@ -9,15 +9,25 @@ class PlantRepositoryImpl implements PlantRepository {
   PlantRepositoryImpl(this.firestoreService);
 
   @override
- Future<List<Plant>> fetchPlants(String userId) async {
-  try {
-    final querySnapshot = await firestoreService.fetchPlants(userId);
-    return querySnapshot.map((model) => model.toEntity()).toList();
-  } catch (e) {
-    print("Error in fetchPlants: $e");
-    throw Exception("Error fetching plants: $e");
+  Future<List<Plant>> fetchPlants(String userId) async {
+    try {
+      final querySnapshot = await firestoreService.fetchPlants(userId);
+      return querySnapshot.map((model) => model.toEntity()).toList();
+    } catch (e) {
+      print("Error in fetchPlants: $e");
+      throw Exception("Error fetching plants: $e");
+    }
   }
-}
+
+  @override
+  Future<Plant?> fetchPlantById(String plantId) async {
+    try {
+      final plantModel = await firestoreService.fetchPlantById(plantId);
+      return plantModel?.toEntity();
+    } catch (e) {
+      throw Exception("Error fetching plant: $e");
+    }
+  }
 
   @override
   Future<void> addPlant(Plant plant) {
@@ -27,14 +37,14 @@ class PlantRepositoryImpl implements PlantRepository {
   }
 
   @override
-  Future<void> deletePlant(String plantId) {
-    return firestoreService.deletePlant(plantId);
-  }
-
-  @override
   Future<void> updatePlant(Plant plant) {
     // Domain entity'sini modele dönüştür ve Firestore'da güncelle
     final model = PlantModel.fromEntity(plant);
     return firestoreService.updatePlant(model);
+  }
+
+  @override
+  Future<void> deletePlant(String plantId) {
+    return firestoreService.deletePlant(plantId);
   }
 }

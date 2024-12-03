@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/datasources/firestore_service.dart';
 import '../../data/datasources/image_service.dart';
 import '../../data/repositories/plant_repository_impl.dart';
@@ -11,10 +12,10 @@ import '../../domain/usecases/fetch_automation.dart';
 import '../../domain/usecases/update_automation.dart';
 import '../../domain/usecases/delete_plant.dart';
 import '../../domain/usecases/update_plant.dart';
-import '../../domain/usecases/add_plant_with_image.dart';
+import '../../domain/usecases/fetch_plant_by_id.dart';
 
 // Firestore Service Provider
-final firestoreServiceProvider = Provider((ref) => FirestoreService());
+final firestoreServiceProvider = Provider((ref) => FirestoreService(FirebaseFirestore.instance));
 
 // Image Service Provider
 final imageServiceProvider = Provider((ref) => ImageService());
@@ -36,16 +37,16 @@ final fetchPlantsProvider = Provider((ref) {
   final repository = ref.watch(plantRepositoryProvider);
   return FetchPlants(repository);
 });
-
-final addPlantWithImageProvider = Provider((ref) {
+final fetchPlantByIdProvider = Provider((ref) {
   final repository = ref.watch(plantRepositoryProvider);
-  final imageService = ref.watch(imageServiceProvider);
-  return AddPlantWithImage(repository, imageService);
+  return FetchPlantById(repository);
 });
 final addPlantProvider = Provider((ref) {
   final repository = ref.watch(plantRepositoryProvider);
-  return AddPlant(repository);
+  final imageService = ref.watch(imageServiceProvider);
+  return AddPlant(repository, imageService);
 });
+
 final deletePlantProvider = Provider((ref) {
   final repository = ref.watch(plantRepositoryProvider);
   return DeletePlant(repository);

@@ -1,20 +1,20 @@
-// lib/views/plant_details/plant_details_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:leafy_house/core/di/dependency_injection.dart';
 import 'dart:io';
 import '../../../domain/entities/plant.dart';
 import '../../view_models/plants_notifier.dart';
 import '../../widgets/image_picker_widget.dart';
 import '../../../core/utils/ui_helpers.dart';
 
-class PlantDetailView extends ConsumerStatefulWidget {
-  const PlantDetailView({super.key});
+class PlantEditView extends ConsumerStatefulWidget {
+  const PlantEditView({super.key});
 
   @override
-  _PlantDetailViewState createState() => _PlantDetailViewState();
+  _PlantEditViewState createState() => _PlantEditViewState();
 }
 
-class _PlantDetailViewState extends ConsumerState<PlantDetailView> {
+class _PlantEditViewState extends ConsumerState<PlantEditView> {
   late TextEditingController nameController;
   late TextEditingController typeController;
   late Plant plant;
@@ -40,6 +40,13 @@ class _PlantDetailViewState extends ConsumerState<PlantDetailView> {
     }
 
     try {
+      String? newImageUrl;
+      if (_imageFile != null) {
+        // Yeni bir görsel seçildiyse, önce storage'a yükle
+      final imageService = ref.read(imageServiceProvider);
+      newImageUrl = await imageService.saveImageToLocalStorage(_imageFile!);
+      }
+
       final updatedPlant = Plant(
         id: plant.id,
         userId: plant.userId,
@@ -47,13 +54,10 @@ class _PlantDetailViewState extends ConsumerState<PlantDetailView> {
         type: typeController.text,
         moisture: plant.moisture,
         health: plant.health,
-        imageUrl: plant.imageUrl, // Görsel kaydedildikten sonra güncellenecek
+        imageUrl: newImageUrl ?? plant.imageUrl,
       );
 
-      await ref.read(plantsProvider.notifier).addPlantWithImage(
-            updatedPlant,
-            _imageFile,
-          );
+      await ref.read(plantsProvider.notifier).updateExistingPlant(updatedPlant);
 
       showSuccessMessage(context, "Bitki başarıyla güncellendi.");
       Navigator.pop(context, updatedPlant);

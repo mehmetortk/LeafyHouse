@@ -46,7 +46,7 @@ class AddPlantView extends ConsumerWidget {
         imageUrl: '', // Görsel URL'si daha sonra güncellenecek
       );
 
-      await notifier.addPlantWithImageFile(plant, imageFile).then((_) {
+      await notifier.addNewPlant(plant, imageFile).then((_) {
         showSuccessMessage(context, "Bitki başarıyla eklendi.");
         Navigator.pop(context);
       }).catchError((e) {

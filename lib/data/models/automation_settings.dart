@@ -4,11 +4,12 @@ class AutomationSettingsModel {
   final String plantId;
   final int frequency;
   final int amount;
-
+  final int photoFrequency;
   AutomationSettingsModel({
     required this.plantId,
     required this.frequency,
     required this.amount,
+    required this.photoFrequency,
   });
 
   factory AutomationSettingsModel.fromFirestore(Map<String, dynamic> data) {
@@ -16,6 +17,7 @@ class AutomationSettingsModel {
       plantId: data['plantId'],
       frequency: data['frequency'],
       amount: data['amount'],
+      photoFrequency: data['photoFrequency'],
     );
   }
 
@@ -24,6 +26,7 @@ class AutomationSettingsModel {
       'plantId': plantId,
       'frequency': frequency,
       'amount': amount,
+      'photoFrequency': photoFrequency,
     };
   }
 
@@ -32,6 +35,7 @@ class AutomationSettingsModel {
       plantId: plantId,
       frequency: frequency,
       amount: amount,
+      photoFrequency: photoFrequency,
     );
   }
 
@@ -40,6 +44,7 @@ class AutomationSettingsModel {
       plantId: entity.plantId,
       frequency: entity.frequency,
       amount: entity.amount,
+      photoFrequency: entity.photoFrequency,
     );
   }
 }
