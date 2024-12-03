@@ -47,9 +47,9 @@ dependencies:
   flutter_riverpod: ^2.0.0
   mockito: ^5.4.4
   build_runner: ^2.0.0
-  logger: ^1.0.0
-  flutter_svg: ^0.22.0
-  flutter_local_notifications: ^9.1.1
+  logger: ^2.5.0
+  flutter_svg: ^2.0.16
+  flutter_local_notifications: ^18.0.1
   fluttertoast: ^8.0.8
   
 dev_dependencies:
