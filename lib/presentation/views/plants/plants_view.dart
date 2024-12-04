@@ -1,12 +1,10 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../view_models/plants_notifier.dart';
 import '../../view_models/automation_notifier.dart';
 import '../../../domain/entities/plant.dart';
-import '../../../domain/entities/automation_settings.dart';
 import '../../../core/utils/ui_helpers.dart';
 
 class PlantsView extends ConsumerStatefulWidget {
