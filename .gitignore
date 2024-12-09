@@ -86,7 +86,7 @@ firepit-log.txt
 .svn/
 migrate_working_dir/
 devtools_options.yaml
-
+**/build/
 # Symbolication related
 app.*.symbols
 
