@@ -1,26 +1,34 @@
-# iOS/Xcode files - prevent Makefile detection
-*.pbxproj linguist-generated=true linguist-language=Ruby
-*.xcodeproj/** linguist-generated=true linguist-language=Ruby
-*.xcworkspace/** linguist-generated=true linguist-language=Ruby
-ios/Pods/* linguist-vendored
-ios/Podfile linguist-language=Ruby
-ios/Podfile.lock linguist-generated=true
-*.xcconfig linguist-generated=true linguist-language=Ruby
-*.xcscheme linguist-generated=true linguist-language=Ruby
-*.plist linguist-language=XML
+# Explicitly mark all iOS/Xcode files as vendored to exclude from statistics
+*.pbxproj linguist-vendored=true
+*.xcodeproj/** linguist-vendored=true
+*.xcworkspace/** linguist-vendored=true
+ios/** linguist-vendored=true
+*.xcconfig linguist-vendored=true
+*.xcscheme linguist-vendored=true
+Pods/** linguist-vendored=true
 
-# Flutter/Dart - make Dart primary
+# Force Dart detection
 *.dart linguist-language=Dart linguist-detectable=true
-*.yaml linguist-language=YAML linguist-detectable=true
-pubspec.* linguist-language=YAML
+*.dart linguist-vendored=false
+lib/** linguist-documentation=false
+lib/** linguist-vendored=false
+
+# Vendored/Generated code
+build/** linguist-generated=true
+*.g.dart linguist-generated=true
+*.freezed.dart linguist-generated=true
+.dart_tool/** linguist-generated=true
+.flutter-plugins* linguist-generated=true
 
 # Documentation
 *.md linguist-documentation
 *.txt linguist-documentation
+doc/** linguist-documentation
 
-# Generated/Vendor code
-*.g.dart linguist-generated=true
-*.freezed.dart linguist-generated=true
-build/** linguist-generated=true
-.dart_tool/** linguist-generated=true
-.flutter-plugins* linguist-generated=true
+# YAML configs
+*.yaml linguist-language=YAML linguist-detectable=true
+pubspec.* linguist-language=YAML
+
+# Explicitly exclude Makefile detection
+Makefile linguist-detectable=false
+*.mk linguist-detectable=false
