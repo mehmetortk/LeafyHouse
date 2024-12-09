@@ -1,34 +1,43 @@
-# Explicitly mark all iOS/Xcode files as vendored to exclude from statistics
-*.pbxproj linguist-vendored=true
-*.xcodeproj/** linguist-vendored=true
-*.xcworkspace/** linguist-vendored=true
-ios/** linguist-vendored=true
-*.xcconfig linguist-vendored=true
-*.xcscheme linguist-vendored=true
-Pods/** linguist-vendored=true
+# Exclude Xcode project files from language statistics
+*.pbxproj linguist-generated=true
 
-# Force Dart detection
-*.dart linguist-language=Dart linguist-detectable=true
+# Exclude Xcode workspace and scheme files
+*.xcworkspace/** linguist-generated=true
+*.xcscheme linguist-generated=true
+*.xcworkspacedata linguist-generated=true
+
+# Exclude iOS build and configuration files
+*.xcconfig linguist-generated=true
+ios/Flutter/** linguist-generated=true
+ios/Pods/** linguist-vendored=true
+
+# Force Dart detection for Dart files
+*.dart linguist-language=Dart
 *.dart linguist-vendored=false
-lib/** linguist-documentation=false
-lib/** linguist-vendored=false
 
-# Vendored/Generated code
-build/** linguist-generated=true
+# Exclude generated Dart files
 *.g.dart linguist-generated=true
 *.freezed.dart linguist-generated=true
+
+# Exclude build and cache directories
+build/** linguist-generated=true
 .dart_tool/** linguist-generated=true
+
+# Exclude Flutter plugins
 .flutter-plugins* linguist-generated=true
 
-# Documentation
-*.md linguist-documentation
-*.txt linguist-documentation
-doc/** linguist-documentation
+# Exclude IDE and editor files
+.idea/** linguist-vendored=true
+.vscode/** linguist-vendored=true
 
-# YAML configs
-*.yaml linguist-language=YAML linguist-detectable=true
-pubspec.* linguist-language=YAML
+# Set YAML files language
+*.yaml linguist-language=YAML
 
-# Explicitly exclude Makefile detection
+# Exclude documentation files
+*.md linguist-documentation=true
+*.txt linguist-documentation=true
+doc/** linguist-documentation=true
+
+# Ignore Makefile detection entirely
 Makefile linguist-detectable=false
 *.mk linguist-detectable=false
