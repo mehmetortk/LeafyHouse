@@ -1,18 +1,26 @@
-# iOS files
-*.pbxproj linguist-generated=true
+# iOS/Xcode files - prevent Makefile detection
+*.pbxproj linguist-generated=true linguist-language=Ruby
+*.xcodeproj/** linguist-generated=true linguist-language=Ruby
+*.xcworkspace/** linguist-generated=true linguist-language=Ruby
 ios/Pods/* linguist-vendored
+ios/Podfile linguist-language=Ruby
 ios/Podfile.lock linguist-generated=true
-*.xcconfig linguist-generated=true
-*.xcworkspacedata linguist-generated=true
-*.xcscheme linguist-generated=true
+*.xcconfig linguist-generated=true linguist-language=Ruby
+*.xcscheme linguist-generated=true linguist-language=Ruby
+*.plist linguist-language=XML
 
-# Flutter/Dart
-*.dart linguist-language=Dart
-*.yaml linguist-language=YAML
+# Flutter/Dart - make Dart primary
+*.dart linguist-language=Dart linguist-detectable=true
+*.yaml linguist-language=YAML linguist-detectable=true
+pubspec.* linguist-language=YAML
 
 # Documentation
 *.md linguist-documentation
+*.txt linguist-documentation
 
-# Generated files
+# Generated/Vendor code
 *.g.dart linguist-generated=true
 *.freezed.dart linguist-generated=true
+build/** linguist-generated=true
+.dart_tool/** linguist-generated=true
+.flutter-plugins* linguist-generated=true
