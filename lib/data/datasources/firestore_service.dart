@@ -123,4 +123,5 @@ class FirestoreService implements IFirestoreService {
       throw Exception("Error updating automation settings: $e");
     }
   }
+
 }

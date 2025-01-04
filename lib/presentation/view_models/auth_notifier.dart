@@ -39,6 +39,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       state = state.copyWith(user: userCredential.user, isLoading: false);
     } catch (e) {
+      print("Login error: ${e.toString()}"); // Hata mesajını logla
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString(),

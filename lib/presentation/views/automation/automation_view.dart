@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/entities/automation_settings.dart';
 import '../../../domain/entities/plant.dart';
 import '../../view_models/automation_notifier.dart';
-import '../../../core/utils/ui_helpers.dart'; // Hata ve başarı mesajları için
+import '../../../core/utils/ui_helpers.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class AutomationView extends ConsumerStatefulWidget {
   const AutomationView({super.key});
@@ -17,7 +18,7 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
   late TextEditingController frequencyController;
   late TextEditingController amountController;
   late TextEditingController photoFrequencyController;
-
+  bool _automationEnabled = false;
   Plant? plant;
   bool _controllersInitialized = false;
 
@@ -27,9 +28,10 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
     frequencyController = TextEditingController();
     amountController = TextEditingController();
     photoFrequencyController = TextEditingController();
-
+    _fetchAutomationStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final receivedPlant = ModalRoute.of(context)?.settings.arguments as Plant?;
+      final receivedPlant =
+          ModalRoute.of(context)?.settings.arguments as Plant?;
       if (receivedPlant != null) {
         setState(() {
           plant = receivedPlant;
@@ -43,6 +45,26 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
     });
   }
 
+  Future<void> _fetchAutomationStatus() async {
+    final DatabaseReference relayRef =
+        FirebaseDatabase.instance.ref('relay/automationEnabled');
+    final DataSnapshot snapshot = await relayRef.get();
+    if (snapshot.exists) {
+      setState(() {
+        _automationEnabled = snapshot.value as bool;
+      });
+    }
+  }
+
+  Future<void> _toggleAutomationStatus() async {
+    final DatabaseReference relayRef =
+        FirebaseDatabase.instance.ref('relay/automationEnabled');
+    await relayRef.set(!_automationEnabled);
+    setState(() {
+      _automationEnabled = !_automationEnabled;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final automationState = ref.watch(automationProvider);
@@ -51,7 +73,8 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
     if (automationState.settings != null && !_controllersInitialized) {
       frequencyController.text = automationState.settings!.frequency.toString();
       amountController.text = automationState.settings!.amount.toString();
-      photoFrequencyController.text = automationState.settings!.photoFrequency.toString();
+      photoFrequencyController.text =
+          automationState.settings!.photoFrequency.toString();
       _controllersInitialized = true;
     }
 
@@ -61,30 +84,37 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
       ),
       body: automationState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView( // Klavye açıldığında overflow olmaması için
+          : SingleChildScrollView(
+              // Klavye açıldığında overflow olmaması için
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
                     TextField(
                       controller: frequencyController,
-                      decoration: const InputDecoration(labelText: "Sulama Sıklığı (gün)"),
+                      decoration: const InputDecoration(
+                          labelText: "Sulama Sıklığı (gün)"),
                       keyboardType: TextInputType.number,
-                      onChanged: (value) => setState(() {}), // TextField değişimini takip et
+                      onChanged: (value) =>
+                          setState(() {}), // TextField değişimini takip et
                     ),
                     const SizedBox(height: 10),
                     TextField(
                       controller: amountController,
-                      decoration: const InputDecoration(labelText: "Sulama Miktarı (ml)"),
+                      decoration: const InputDecoration(
+                          labelText: "Sulama Miktarı (ml)"),
                       keyboardType: TextInputType.number,
-                      onChanged: (value) => setState(() {}), // TextField değişimini takip et
+                      onChanged: (value) =>
+                          setState(() {}), // TextField değişimini takip et
                     ),
                     const SizedBox(height: 20),
                     TextField(
                       controller: photoFrequencyController,
-                      decoration: const InputDecoration(labelText: "Fotoğraf Çekme Sıklığı (saat)"),
+                      decoration: const InputDecoration(
+                          labelText: "Fotoğraf Çekme Sıklığı (saat)"),
                       keyboardType: TextInputType.number,
-                      onChanged: (value) => setState(() {}), // TextField değişimini takip et
+                      onChanged: (value) =>
+                          setState(() {}), // TextField değişimini takip et
                     ),
                     ElevatedButton(
                       onPressed: () async {
@@ -133,6 +163,13 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
                         }
                       },
                       child: Text("Kaydet"),
+                    ),
+                    const SizedBox(height: 10), // Add some spacing
+                    ElevatedButton(
+                      onPressed: _toggleAutomationStatus,
+                      child: Text(_automationEnabled
+                          ? "Otomasyonu durdur"
+                          : "Otomasyonu aktif et"),
                     ),
                   ],
                 ),
