@@ -1,0 +1,36 @@
+name: Flutter CI
+
+on:
+  push:
+    branches:
+      - main # Hangi branch için çalışacağı
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Depoyu klonla
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Flutter SDK'yı kur
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5' # Kullandığınız Flutter sürümü (örn. '3.10.6')
+
+      # Flutter bağımlılıklarını yükle
+      - name: Install Dependencies
+        run: flutter pub get
+
+      # Test çalıştır (isteğe bağlı)
+      - name: Run Tests
+        run: flutter test
+
+      # Flutter build (örneğin APK veya IPA oluşturma)
+      - name: Build APK
+        run: flutter build apk --release
