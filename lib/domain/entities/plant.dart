@@ -3,8 +3,6 @@ class Plant {
   final String userId;
   final String name;
   final String type;
-  final int moisture;
-  final String health;
   final String imageUrl;
 
   Plant({
@@ -12,8 +10,6 @@ class Plant {
     required this.userId,
     required this.name,
     required this.type,
-    required this.moisture,
-    required this.health,
     required this.imageUrl,
   });
 }

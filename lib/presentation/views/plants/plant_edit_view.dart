@@ -52,8 +52,6 @@ class _PlantEditViewState extends ConsumerState<PlantEditView> {
         userId: plant.userId,
         name: nameController.text,
         type: typeController.text,
-        moisture: plant.moisture,
-        health: plant.health,
         imageUrl: newImageUrl ?? plant.imageUrl,
       );
 

@@ -91,10 +91,13 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
             children: [
               // Logo ve diğer Widget'lar
               Center(
-                child: Image.asset(
-                  'assets/images/app_logo.png', // Logonun yolu
-                  height: 100,
-                  width: 100,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(50.0),
+                  child: Image.asset(
+                    'assets/images/app_logo.png', // Logonun yolu
+                    height: 100,
+                    width: 100,
+                  ),
                 ),
               ),
               SizedBox(height: 20),
@@ -102,7 +105,9 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                 controller: emailController,
                 decoration: InputDecoration(
                   labelText: "E-posta",
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
@@ -111,7 +116,9 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                 controller: passwordController,
                 decoration: InputDecoration(
                   labelText: "Şifre",
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
                 ),
                 obscureText: true,
                 onChanged: checkPassword,
@@ -121,7 +128,9 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                 controller: confirmPasswordController,
                 decoration: InputDecoration(
                   labelText: "Şifre Tekrar",
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
                 ),
                 obscureText: true,
                 onChanged: checkConfirmPassword,
@@ -163,6 +172,11 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                               }
                             }
                           : null,
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
                       child: Text("Kayıt Ol"),
                     ),
               TextButton(

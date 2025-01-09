@@ -23,8 +23,6 @@ class AddPlant {
       userId: plant.userId,
       name: plant.name,
       type: plant.type,
-      moisture: plant.moisture,
-      health: plant.health,
       imageUrl: imageUrl,
     );
 

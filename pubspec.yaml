@@ -46,11 +46,11 @@ dependencies:
   flutter_riverpod: ^2.0.0
   build_runner: ^2.0.0
   logger: ^2.5.0
-
+  tflite_flutter: ^0.11.0 
   flutter_svg: ^2.0.16
   flutter_local_notifications: ^18.0.1
   fluttertoast: ^8.0.8
-  
+  image: ^3.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -68,7 +68,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-    - assets/model/model_optimized.pt
+    - assets/model/model.tflite
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

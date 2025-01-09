@@ -41,8 +41,6 @@ class AddPlantView extends ConsumerWidget {
         userId: userId, // Kullanıcı ID'sini buraya ekliyoruz
         name: nameController.text,
         type: typeController.text,
-        moisture: 0, // Varsayılan değer
-        health: 'Sağlıklı', // Varsayılan değer
         imageUrl: '', // Görsel URL'si daha sonra güncellenecek
       );
 

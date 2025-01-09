@@ -5,8 +5,6 @@ class PlantModel {
   final String userId;
   final String name;
   final String type;
-  final int moisture;
-  final String health;
   final String imageUrl;
 
   PlantModel({
@@ -14,8 +12,6 @@ class PlantModel {
     required this.userId,
     required this.name,
     required this.type,
-    required this.moisture,
-    required this.health,
     required this.imageUrl,
   });
 
@@ -26,8 +22,6 @@ class PlantModel {
       userId: data['userId'] ?? '',
       name: data['name'] ?? 'Unknown Plant',
       type: data['type'] ?? 'Unknown Type',
-      moisture: data['moisture'] ?? 0,
-      health: data['health'] ?? 'Unknown',
       imageUrl: data['imageUrl'] ?? '',
     );
   }
@@ -38,8 +32,6 @@ class PlantModel {
       'userId': userId,
       'name': name,
       'type': type,
-      'moisture': moisture,
-      'health': health,
       'imageUrl': imageUrl,
     };
   }
@@ -51,8 +43,6 @@ class PlantModel {
       userId: userId,
       name: name,
       type: type,
-      moisture: moisture,
-      health: health,
       imageUrl: imageUrl,
     );
   }
@@ -64,8 +54,6 @@ class PlantModel {
       userId: plant.userId,
       name: plant.name,
       type: plant.type,
-      moisture: plant.moisture,
-      health: plant.health,
       imageUrl: plant.imageUrl,
     );
   }
