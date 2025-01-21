@@ -18,9 +18,6 @@ class PlantInfoDetailsView extends ConsumerStatefulWidget {
 
 class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
   Plant? plant;
-  bool isWatering = false;
-  Timer? timer;
-  int seconds = 0;
   int moisture = 0;
   String health_status = 'Bitkinin sağlık durumu belirleniyor...';
   final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
@@ -42,11 +39,22 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
 
       final ListResult result = await FirebaseStorage.instance
           .ref('images')
-          .list(ListOptions(maxResults: 1));
+          .listAll();
 
-      if (result.items.isNotEmpty) {
-        final String imageUrl = await result.items.first.getDownloadURL();
-        print('Image URL fetched: $imageUrl');
+      Reference? newestRef;
+      DateTime latestTime = DateTime(1970);
+
+      for (var item in result.items) {
+        final metadata = await item.getMetadata();
+        if (metadata.timeCreated != null && metadata.timeCreated!.isAfter(latestTime)) {
+          latestTime = metadata.timeCreated!;
+          newestRef = item;
+        }
+      }
+
+      if (newestRef != null) {
+        final String imageUrl = await newestRef.getDownloadURL();
+        print('En yeni görsel URL: $imageUrl');
         final response = await HttpClient().getUrl(Uri.parse(imageUrl));
         final httpResponse = await response.close();
         final bytes = await consolidateHttpClientResponseBytes(httpResponse);
@@ -63,8 +71,9 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
 
           // Calculate max confidence
           double maxConfidence = output[0].reduce((a, b) => a > b ? a : b);
+          print(maxConfidence);
           int maxIndex = output[0].indexOf(maxConfidence);
-          String label = maxConfidence >= 0.6 ? getLabel(maxIndex) : 'Görsel algılanamadı!';
+          String label = maxConfidence > 0.5 ? getLabel(maxIndex) : 'Görsel algılanamadı! \nBu bir bitki görseli olmayabilir veya veri setinde mevcut olmayan bir bitki olabilir.';
 
           setState(() {
             health_status = label;
@@ -104,45 +113,11 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
     return convertedBytes;
   }
 
-  void toggleWatering() {
-    setState(() {
-      isWatering = !isWatering;
-      if (isWatering) {
-        startTimer();
-        _updateManualControl(true);
-      } else {
-        stopTimer();
-        _updateManualControl(false);
-      }
-    });
-  }
-
-  void startTimer() {
-    timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        seconds++;
-      });
-    });
-  }
-
-  void stopTimer() {
-    timer?.cancel();
-    seconds = 0;
-  }
-
-  Future<void> _updateManualControl(bool value) async {
-    try {
-      await _databaseReference.child('relay/manuelControl').set(value);
-    } catch (e) {
-      print('Error updating manual control: $e');
-    }
-  }
-
   Future<void> _fetchMoistureData() async {
     try {
       final moistureRef = _databaseReference.child('plant/moisture');
       moistureRef.onValue.listen((event) {
-        final double newMoisture = event.snapshot.value as double;
+        final int newMoisture = event.snapshot.value as int;
         setState(() {
           moisture = newMoisture.toInt();
         });
@@ -180,7 +155,7 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
     if (parts.length < 2) return label;
     final status = parts.last;
     final plantName = parts.sublist(0, parts.length - 1).map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
-    final statusFormatted = status == 'healthy' ? '**Healthy**' : '**Unhealthy**';
+    final statusFormatted = status == 'healthy' ? 'Healthy' : 'Unhealthy';
     return '$plantName $statusFormatted';
   }
 
@@ -242,24 +217,6 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
                     text: health_status,
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                ],
-              ),
-            ),
-            // Add more fields as necessary
-            SizedBox(height: 16),
-            Center(
-              child: Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: toggleWatering,
-                    child: Text(
-                        isWatering ? 'Sulamayı Durdur' : 'Sulamayı Başlat'),
-                  ),
-                  if (isWatering)
-                    Text(
-                      'Süre: ${seconds}s',
-                      style: TextStyle(fontSize: 18),
-                    ),
                 ],
               ),
             ),

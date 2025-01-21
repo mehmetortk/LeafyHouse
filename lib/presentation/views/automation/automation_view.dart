@@ -1,10 +1,9 @@
 // lib/views/automation/automation_view.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../domain/entities/automation_settings.dart';
 import '../../../domain/entities/plant.dart';
 import '../../view_models/automation_notifier.dart';
-import '../../../core/utils/ui_helpers.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 class AutomationView extends ConsumerStatefulWidget {
@@ -15,6 +14,10 @@ class AutomationView extends ConsumerStatefulWidget {
 }
 
 class _AutomationViewState extends ConsumerState<AutomationView> {
+  bool isWatering = false;
+  Timer? timer;
+  int seconds = 0;
+  final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
   late TextEditingController frequencyController;
   late TextEditingController amountController;
   late TextEditingController photoFrequencyController;
@@ -56,6 +59,14 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
     }
   }
 
+  Future<void> _updateManualControl(bool value) async {
+    try {
+      await _databaseReference.child('relay/manuelControl').set(value);
+    } catch (e) {
+      print('Error updating manual control: $e');
+    }
+  }
+
   Future<void> _toggleAutomationStatus() async {
     final DatabaseReference relayRef =
         FirebaseDatabase.instance.ref('relay/automationEnabled');
@@ -63,6 +74,33 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
     setState(() {
       _automationEnabled = !_automationEnabled;
     });
+  }
+
+  // Added watering-related functions
+  void toggleWatering() {
+    setState(() {
+      isWatering = !isWatering;
+      if (isWatering) {
+        startTimer();
+        _updateManualControl(true);
+      } else {
+        stopTimer();
+        _updateManualControl(false);
+      }
+    });
+  }
+
+  void startTimer() {
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        seconds++;
+      });
+    });
+  }
+
+  void stopTimer() {
+    timer?.cancel();
+    seconds = 0;
   }
 
   @override
@@ -90,86 +128,30 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    TextField(
-                      controller: frequencyController,
-                      decoration: const InputDecoration(
-                          labelText: "Sulama Sıklığı (gün)"),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) =>
-                          setState(() {}), // TextField değişimini takip et
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: toggleWatering,
+                        child: Text(
+                            isWatering ? 'Sulamayı Durdur' : 'Sulamayı Başlat'),
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: amountController,
-                      decoration: const InputDecoration(
-                          labelText: "Sulama Miktarı (ml)"),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) =>
-                          setState(() {}), // TextField değişimini takip et
-                    ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      controller: photoFrequencyController,
-                      decoration: const InputDecoration(
-                          labelText: "Fotoğraf Çekme Sıklığı (saat)"),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) =>
-                          setState(() {}), // TextField değişimini takip et
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        // Girişlerin doğruluğunu kontrol et
-                        if (frequencyController.text.isEmpty ||
-                            amountController.text.isEmpty ||
-                            photoFrequencyController.text.isEmpty) {
-                          showErrorMessage(
-                              context, "Lütfen tüm alanları doldurun.");
-                          return;
-                        }
-
-                        int? frequency = int.tryParse(frequencyController.text);
-                        int? amount = int.tryParse(amountController.text);
-                        int? photoFrequency =
-                            int.tryParse(photoFrequencyController.text);
-
-                        if (frequency == null ||
-                            amount == null ||
-                            photoFrequency == null) {
-                          showErrorMessage(context, "Geçerli sayılar giriniz.");
-                          return;
-                        }
-
-                        final updatedSettings = AutomationSettings(
-                          plantId: plant!.id,
-                          frequency: frequency,
-                          amount: amount,
-                          photoFrequency: photoFrequency,
-                        );
-
-                        await ref
-                            .read(automationProvider.notifier)
-                            .saveSettings(updatedSettings);
-
-                        // Güncellenmiş state'i okuyarak kontrol et
-                        final updatedState = ref.read(automationProvider);
-
-                        if (updatedState.errorMessage != null) {
-                          showErrorMessage(context,
-                              "Ayarlar kaydedilirken bir hata oluştu: ${updatedState.errorMessage}");
-                        } else {
-                          showSuccessMessage(
-                              context, "Ayarlar başarıyla kaydedildi!");
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: Text("Kaydet"),
-                    ),
-                    const SizedBox(height: 10), // Add some spacing
-                    ElevatedButton(
-                      onPressed: _toggleAutomationStatus,
-                      child: Text(_automationEnabled
-                          ? "Otomasyonu durdur"
-                          : "Otomasyonu aktif et"),
+                    if (isWatering)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        child: Text(
+                          'Süre: ${seconds}s',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _toggleAutomationStatus,
+                        child: Text(_automationEnabled
+                            ? "Otomasyonu Durdur"
+                            : "Otomasyonu Aktif Et"),
+                      ),
                     ),
                   ],
                 ),

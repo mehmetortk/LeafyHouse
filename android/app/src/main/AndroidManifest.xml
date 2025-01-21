@@ -2,7 +2,7 @@
 <uses-permission android:name="android.permission.CAMERA" />
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <application
-        android:label="leafy_house"
+        android:label="Leafy House"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
        >

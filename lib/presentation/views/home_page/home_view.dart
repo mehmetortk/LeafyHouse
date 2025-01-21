@@ -7,7 +7,7 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Bitki Yönetimi"),
+        title: Text("Ana Sayfa"),
       ),
       body: Center(
         child: ElevatedButton(

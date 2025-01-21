@@ -6,64 +6,61 @@ abstract class Failure {
 }
 
 class ServerFailure extends Failure {
-  ServerFailure({required String message}) : super(message: message);
+  ServerFailure({required super.message});
 }
 
 class CacheFailure extends Failure {
-  CacheFailure({required String message}) : super(message: message);
+  CacheFailure({required super.message});
 }
 
 class NetworkFailure extends Failure {
-  NetworkFailure({required String message}) : super(message: message);
+  NetworkFailure({required super.message});
 }
 
 class AuthenticationFailure extends Failure {
-  AuthenticationFailure({required String message}) : super(message: message);
+  AuthenticationFailure({required super.message});
 }
 
 class PermissionDeniedFailure extends Failure {
-  PermissionDeniedFailure({required String message}) : super(message: message);
+  PermissionDeniedFailure({required super.message});
 }
 
 class NotFoundFailure extends Failure {
-  NotFoundFailure({required String message}) : super(message: message);
+  NotFoundFailure({required super.message});
 }
 
 class InvalidInputFailure extends Failure {
-  InvalidInputFailure({required String message}) : super(message: message);
+  InvalidInputFailure({required super.message});
 }
 
 class TimeoutFailure extends Failure {
-  TimeoutFailure({required String message}) : super(message: message);
+  TimeoutFailure({required super.message});
 }
 
 class UnexpectedFailure extends Failure {
-  UnexpectedFailure({required String message}) : super(message: message);
+  UnexpectedFailure({required super.message});
 }
 
 class DatabaseFailure extends Failure {
-  DatabaseFailure({required String message}) : super(message: message);
+  DatabaseFailure({required super.message});
 }
 
 class FileNotFoundFailure extends Failure {
-  FileNotFoundFailure({required String message}) : super(message: message);
+  FileNotFoundFailure({required super.message});
 }
 
 class InsufficientStorageFailure extends Failure {
-  InsufficientStorageFailure({required String message})
-      : super(message: message);
+  InsufficientStorageFailure({required super.message});
 }
 
 class DuplicateEntryFailure extends Failure {
-  DuplicateEntryFailure({required String message}) : super(message: message);
+  DuplicateEntryFailure({required super.message});
 }
 
 class InvalidCredentialFailure extends Failure {
-  InvalidCredentialFailure({required String message})
-      : super(message: message);
+  InvalidCredentialFailure({required super.message});
 }
 
 class OperationCancelledFailure extends Failure {
-  OperationCancelledFailure({required String message})
-      : super(message: message);
+  OperationCancelledFailure({required super.message});
 }

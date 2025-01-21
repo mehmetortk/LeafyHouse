@@ -114,7 +114,6 @@ class PlantsNotifier extends StateNotifier<PlantsState> {
     }
   }
 
-  // Error mesajını temizlemek için yardımcı metot
   void clearError() {
     state = state.copyWith(errorMessage: null);
   }
