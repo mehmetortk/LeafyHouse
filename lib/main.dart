@@ -13,14 +13,29 @@ import 'presentation/views/plants/plant_edit_view.dart';
 import 'presentation/views/plants/plant_info_details_view.dart';
 import 'presentation/views/automation/automation_view.dart';
 import 'presentation/views/settings/settings_view.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print("FCM Arka Plan Mesajı: ${message.messageId}");
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  final fcm = FirebaseMessaging.instance;
+  await fcm.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+  await fcm.subscribeToTopic('imageUploads');
+
   runApp(
-    ProviderScope(
+    const ProviderScope(
       child: MyApp(),
     ),
   );

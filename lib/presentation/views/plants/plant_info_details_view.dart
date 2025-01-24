@@ -73,7 +73,7 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
           double maxConfidence = output[0].reduce((a, b) => a > b ? a : b);
           print(maxConfidence);
           int maxIndex = output[0].indexOf(maxConfidence);
-          String label = maxConfidence > 0.5 ? getLabel(maxIndex) : 'Görsel algılanamadı! \nBu bir bitki görseli olmayabilir veya veri setinde mevcut olmayan bir bitki olabilir.';
+          String label = maxConfidence > 0.63 ? getLabel(maxIndex) : 'Görsel algılanamadı! \nBu bir bitki görseli olmayabilir veya veri setinde mevcut olmayan bir bitki olabilir.';
 
           setState(() {
             health_status = label;
