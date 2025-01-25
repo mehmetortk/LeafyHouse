@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:intl/intl.dart';
 import '../../../domain/entities/plant.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -22,6 +23,7 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
   String health_status = 'Bitkinin sağlık durumu belirleniyor...';
   final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
   Interpreter? _interpreter;
+  String? latestImageUrl;
 
   @override
   void didChangeDependencies() {
@@ -30,6 +32,38 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
     if (plant != null) {
       _fetchMoistureData();
       _loadModelAndClassifyImage();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLatestImageUrl();
+  }
+
+  Future<void> _fetchLatestImageUrl() async {
+    final storageRef = FirebaseStorage.instance.ref().child('images/');
+    final listResult = await storageRef.listAll();
+    final allFiles = listResult.items;
+
+    if (allFiles.isNotEmpty) {
+      Reference? latestFile;
+      DateTime latestTime = DateTime(1970);
+
+      for (var file in allFiles) {
+        final metadata = await file.getMetadata();
+        if (metadata.timeCreated != null && metadata.timeCreated!.isAfter(latestTime)) {
+          latestTime = metadata.timeCreated!;
+          latestFile = file;
+        }
+      }
+
+      if (latestFile != null) {
+        final latestUrl = await latestFile.getDownloadURL();
+        setState(() {
+          latestImageUrl = latestUrl;
+        });
+      }
     }
   }
 
@@ -176,53 +210,140 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
       appBar: AppBar(
         title: Text(plant!.name),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height * 0.3,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(5),
-                  child: plant!.imageUrl.isNotEmpty
-                      ? Image.file(
-                          File(plant!.imageUrl),
-                          fit: BoxFit.cover,
-                        )
-                      : Placeholder(),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            // Display plant name
-            Text(
-              plant!.name,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            // Display plant type
-            Text(
-              'Tür: ${plant!.type}',
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 16),
-            // Display other plant details
-            Text('Nem Oranı: %$moisture'),
-            Text.rich(
-              TextSpan(
+      body: latestImageUrl == null
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextSpan(text: 'Sağlık Durumu: '),
-                  TextSpan(
-                    text: health_status,
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  Center(
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.3,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(5),
+                        child: latestImageUrl != null
+                            ? Image.network(
+                                latestImageUrl!,
+                                fit: BoxFit.cover,
+                              )
+                            : Placeholder(),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  // Display plant name
+                  Text(
+                    plant!.name,
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  // Display plant type
+                  Text(
+                    'Tür: ${plant!.type}',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  SizedBox(height: 16),
+                  // Display other plant details
+                  Text('Nem Oranı: %$moisture'),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: 'Sağlık Durumu: '),
+                        TextSpan(
+                          text: health_status,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  // Add button to show plant history
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PlantHistoryView(plantId: plant!.id),
+                        ),
+                      );
+                    },
+                    child: Text('Bitki Geçmişini Göster'),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+    );
+  }
+}
+
+class PlantHistoryView extends StatefulWidget {
+  final String plantId;
+
+  const PlantHistoryView({Key? key, required this.plantId}) : super(key: key);
+
+  @override
+  _PlantHistoryViewState createState() => _PlantHistoryViewState();
+}
+
+class _PlantHistoryViewState extends State<PlantHistoryView> {
+  List<Map<String, dynamic>> images = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPlantHistory();
+  }
+
+  Future<void> _fetchPlantHistory() async {
+    final storageRef = FirebaseStorage.instance.ref().child('images/');
+    final listResult = await storageRef.listAll();
+    final allFiles = listResult.items;
+
+    List<Map<String, dynamic>> tempImages = [];
+
+    for (var item in allFiles) {
+      final metadata = await item.getMetadata();
+      final imageUrl = await item.getDownloadURL();
+      final label = await _classifyImage(imageUrl); // Model değerlendirme sonucu
+      tempImages.add({
+        'url': imageUrl,
+        'label': label,
+        'date': metadata.timeCreated,
+      });
+    }
+
+    tempImages.sort((a, b) => b['date'].compareTo(a['date'])); // En güncelden en eskiye sıralama
+
+    setState(() {
+      images = tempImages.take(8).toList(); // Son 8 görseli al
+    });
+  }
+
+  Future<String> _classifyImage(String imageUrl) async {
+    // Görseli sınıflandırma işlemi burada yapılacak
+    // Bu örnekte sadece bir placeholder döndürüyoruz
+    return 'Model Değerlendirme Sonucu';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Bitki Geçmişi'),
       ),
+      body: images.isEmpty
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: images.length,
+              itemBuilder: (context, index) {
+                final image = images[index];
+                return ListTile(
+                  leading: Image.network(image['url']),
+                  title: Text(image['label']),
+                  subtitle: Text(DateFormat('yyyy-MM-dd HH:mm:ss').format(image['date'])),
+                );
+              },
+            ),
     );
   }
 }
