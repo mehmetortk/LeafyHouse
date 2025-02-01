@@ -279,16 +279,19 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
                   ),
                   SizedBox(height: 16),
                   // Add button to show plant history
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PlantHistoryView(plantId: plant!.id),
-                        ),
-                      );
-                    },
-                    child: Text('Bitki Geçmişini Göster'),
+                  Align(
+                    alignment: Alignment.center,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PlantHistoryView(plantId: plant!.id),
+                          ),
+                        );
+                      },
+                      child: Text('Bitki Geçmişini Göster'),
+                    ),
                   ),
                 ],
               ),

@@ -44,6 +44,28 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
     }
   }
 
+  void _showImageDialog(String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+            },
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              margin: EdgeInsets.all(20),
+              child: Image.network(imageUrl, fit: BoxFit.fill),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,7 +79,17 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
               itemBuilder: (context, index) {
                 final image = images[index];
                 return ListTile(
-                  leading: Image.network(image['url']),
+                  leading: GestureDetector(
+                    onTap: () {
+                      _showImageDialog(image['url']);
+                    },
+                    child: Image.network(
+                      image['url'],
+                      width: MediaQuery.of(context).size.width / 3,
+                      height: MediaQuery.of(context).size.width / 3,
+                      fit: BoxFit.fill,
+                    ),
+                  ),
                   title: Text(image['label']),
                   subtitle: Text(DateFormat('yyyy-MM-dd HH:mm:ss').format(image['date'])),
                 );

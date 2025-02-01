@@ -1,6 +1,7 @@
 // lib/views/settings/settings_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../view_models/auth_notifier.dart';
 
 class SettingsView extends ConsumerWidget {
@@ -19,6 +20,9 @@ class SettingsView extends ConsumerWidget {
             ? CircularProgressIndicator()
             : ElevatedButton(
                 onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool("remember_me", false);
+
                   await authNotifier.logout();
 
                   if (authState.errorMessage != null) {

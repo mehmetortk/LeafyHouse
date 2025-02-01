@@ -1,18 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../view_models/auth_notifier.dart';
 
-class LoginView extends ConsumerWidget {
+class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _LoginViewState createState() => _LoginViewState();
+}
+
+class _LoginViewState extends ConsumerState<LoginView> {
+  bool rememberMe = false;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkRememberMe();
+  }
+
+  Future<void> _checkRememberMe() async {
+    final prefs = await SharedPreferences.getInstance();
+    final rememberMe = prefs.getBool("remember_me") ?? false;
+    if (rememberMe) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacementNamed(context, "/home");
+      });
+    }
+  }
+
+  Future<void> _onLoginPressed() async {
+    // await login, assuming login does not return a value
+    await ref.read(authProvider.notifier).login(
+      emailController.text.trim(),
+      passwordController.text.trim(),
+    );
+    // Retrieve the current auth state (assuming it contains a 'user' property)
+    final authState = ref.read(authProvider);
+    if (authState.user != null) {
+      if (rememberMe) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool("remember_me", true);
+      }
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, "/home");
+    } else {
+      // Giriş başarısızsa kullanıcıya bildirim gönderin.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Giriş yapılamadı, lütfen tekrar deneyin.")),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final authNotifier = ref.read(authProvider.notifier);
-
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
-
     return Scaffold(
       appBar: AppBar(title: Text("Giriş Yap")),
       body: Padding(
@@ -59,26 +103,19 @@ class LoginView extends ConsumerWidget {
                       obscureText: true,
                     ),
                     SizedBox(height: 30),
+                    CheckboxListTile(
+                      value: rememberMe,
+                      onChanged: (value) {
+                        setState(() {
+                          rememberMe = value ?? false;
+                        });
+                      },
+                      title: Text("Beni Hatırla"),
+                    ),
                     authState.isLoading
                         ? Center(child: CircularProgressIndicator())
                         : ElevatedButton(
-                            onPressed: () async {
-                              await authNotifier.login(
-                                emailController.text.trim(),
-                                passwordController.text.trim(),
-                              );
-
-                              if (authState.errorMessage != null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        "Giriş Başarısız: ${authState.errorMessage}"),
-                                  ),
-                                );
-                              } else {
-                                Navigator.pushReplacementNamed(context, '/home');
-                              }
-                            },
+                            onPressed: _onLoginPressed,
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12.0),
