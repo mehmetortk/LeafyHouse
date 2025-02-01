@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
 
 class PlantHistoryView extends StatefulWidget {
@@ -21,34 +21,27 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
   }
 
   Future<void> _fetchPlantHistory() async {
-    final storageRef = FirebaseStorage.instance.ref().child('images/');
-    final listResult = await storageRef.listAll();
-    final allFiles = listResult.items;
+    final historyRef = FirebaseDatabase.instance.ref().child('plant_history');
+    final snapshot = await historyRef.orderByChild('date').once();
 
-    List<Map<String, dynamic>> tempImages = [];
+    if (snapshot.snapshot.value != null) {
+      final data = snapshot.snapshot.value as Map<dynamic, dynamic>;
+      List<Map<String, dynamic>> tempImages = [];
 
-    for (var item in allFiles) {
-      final metadata = await item.getMetadata();
-      final imageUrl = await item.getDownloadURL();
-      final label = await _classifyImage(imageUrl); // Model değerlendirme sonucu
-      tempImages.add({
-        'url': imageUrl,
-        'label': label,
-        'date': metadata.timeCreated,
+      data.forEach((key, value) {
+        tempImages.add({
+          'url': value['imageUrl'],
+          'label': value['label'],
+          'date': DateTime.parse(value['date']),
+        });
+      });
+
+      tempImages.sort((a, b) => b['date'].compareTo(a['date'])); // En güncelden en eskiye sıralama
+
+      setState(() {
+        images = tempImages.take(8).toList(); // Son 8 görseli al
       });
     }
-
-    tempImages.sort((a, b) => b['date'].compareTo(a['date'])); // En güncelden en eskiye sıralama
-
-    setState(() {
-      images = tempImages.take(8).toList(); // Son 8 görseli al
-    });
-  }
-
-  Future<String> _classifyImage(String imageUrl) async {
-    // Görseli sınıflandırma işlemi burada yapılacak
-    // Bu örnekte sadece bir placeholder döndürüyoruz
-    return 'Model Değerlendirme Sonucu';
   }
 
   @override

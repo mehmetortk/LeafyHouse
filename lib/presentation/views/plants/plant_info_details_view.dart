@@ -6,10 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:intl/intl.dart';
 import '../../../domain/entities/plant.dart';
 import 'package:firebase_database/firebase_database.dart';
-
+import 'plant_history_view.dart';
 class PlantInfoDetailsView extends ConsumerStatefulWidget {
   const PlantInfoDetailsView({Key? key}) : super(key: key);
 
@@ -89,6 +88,21 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
       if (newestRef != null) {
         final String imageUrl = await newestRef.getDownloadURL();
         print('En yeni görsel URL: $imageUrl');
+
+        // Veritabanında bu görsel için zaten bir sonuç olup olmadığını kontrol et
+        final historyRef = _databaseReference.child('plant_history');
+        final snapshot = await historyRef.orderByChild('imageUrl').equalTo(imageUrl).once();
+
+        if (snapshot.snapshot.value != null) {
+          print('Bu görsel için zaten bir sonuç var.');
+          final data = snapshot.snapshot.value as Map<dynamic, dynamic>;
+          final existingLabel = data.values.first['label'];
+          setState(() {
+            health_status = existingLabel;
+          });
+          return;
+        }
+
         final response = await HttpClient().getUrl(Uri.parse(imageUrl));
         final httpResponse = await response.close();
         final bytes = await consolidateHttpClientResponseBytes(httpResponse);
@@ -113,6 +127,13 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
             health_status = label;
           });
           print('Health status updated to: $health_status');
+
+          // Model sonucunu veritabanına kaydet
+          await _databaseReference.child('plant_history').push().set({
+            'imageUrl': imageUrl,
+            'label': label,
+            'date': DateTime.now().toIso8601String(),
+          });
         } else {
           print('Failed to decode image.');
           setState(() {
@@ -276,74 +297,3 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
   }
 }
 
-class PlantHistoryView extends StatefulWidget {
-  final String plantId;
-
-  const PlantHistoryView({Key? key, required this.plantId}) : super(key: key);
-
-  @override
-  _PlantHistoryViewState createState() => _PlantHistoryViewState();
-}
-
-class _PlantHistoryViewState extends State<PlantHistoryView> {
-  List<Map<String, dynamic>> images = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchPlantHistory();
-  }
-
-  Future<void> _fetchPlantHistory() async {
-    final storageRef = FirebaseStorage.instance.ref().child('images/');
-    final listResult = await storageRef.listAll();
-    final allFiles = listResult.items;
-
-    List<Map<String, dynamic>> tempImages = [];
-
-    for (var item in allFiles) {
-      final metadata = await item.getMetadata();
-      final imageUrl = await item.getDownloadURL();
-      final label = await _classifyImage(imageUrl); // Model değerlendirme sonucu
-      tempImages.add({
-        'url': imageUrl,
-        'label': label,
-        'date': metadata.timeCreated,
-      });
-    }
-
-    tempImages.sort((a, b) => b['date'].compareTo(a['date'])); // En güncelden en eskiye sıralama
-
-    setState(() {
-      images = tempImages.take(8).toList(); // Son 8 görseli al
-    });
-  }
-
-  Future<String> _classifyImage(String imageUrl) async {
-    // Görseli sınıflandırma işlemi burada yapılacak
-    // Bu örnekte sadece bir placeholder döndürüyoruz
-    return 'Model Değerlendirme Sonucu';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Bitki Geçmişi'),
-      ),
-      body: images.isEmpty
-          ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: images.length,
-              itemBuilder: (context, index) {
-                final image = images[index];
-                return ListTile(
-                  leading: Image.network(image['url']),
-                  title: Text(image['label']),
-                  subtitle: Text(DateFormat('yyyy-MM-dd HH:mm:ss').format(image['date'])),
-                );
-              },
-            ),
-    );
-  }
-}
