@@ -14,6 +14,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
   bool rememberMe = false;
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  int notificationCount = 3; // Örnek statik değer
 
   @override
   void initState() {
