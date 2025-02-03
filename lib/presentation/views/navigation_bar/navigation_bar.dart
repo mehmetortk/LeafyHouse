@@ -16,13 +16,13 @@ class MainNavigationBar extends StatefulWidget {
 
 class _MainNavigationBarState extends State<MainNavigationBar> {
   int _selectedIndex = 0;
-  int notificationCount = 3; // Örnek statik değer
 
   final List<Widget> _pages = [
     HomeView(),
     PlantsView(),
-    SettingsView(), 
     NotificationsView(),
+    SettingsView(), 
+   
   ];
 
   void _onItemTapped(int index) {

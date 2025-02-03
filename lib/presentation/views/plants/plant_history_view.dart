@@ -80,9 +80,7 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
                 final image = images[index];
                 return ListTile(
                   leading: GestureDetector(
-                    onTap: () {
-                      _showImageDialog(image['url']);
-                    },
+                    onTap: () => _showImageDialog(image['url']),
                     child: Image.network(
                       image['url'],
                       width: MediaQuery.of(context).size.width / 3,
@@ -90,8 +88,41 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
                       fit: BoxFit.fill,
                     ),
                   ),
-                  title: Text(image['label']),
-                  subtitle: Text(DateFormat('yyyy-MM-dd HH:mm:ss').format(image['date'])),
+                  title: GestureDetector(
+                    onTap: () {
+                      // Tam mesajı gösteren dialog
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text("Görselin değerlendirilmesi"),
+                            content: Text(image['label']),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text("Kapat"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.6,
+                      child: Text(
+                        image['label'],
+                        style: const TextStyle(fontSize: 16),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  subtitle: Text(
+                    DateFormat('yyyy-MM-dd HH:mm:ss').format(image['date']),
+                    style: const TextStyle(fontSize: 14),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 );
               },
             ),

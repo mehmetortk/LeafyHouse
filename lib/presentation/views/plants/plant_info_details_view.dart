@@ -210,7 +210,7 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
     if (parts.length < 2) return label;
     final status = parts.last;
     final plantName = parts.sublist(0, parts.length - 1).map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
-    final statusFormatted = status == 'healthy' ? 'Healthy' : 'Unhealthy';
+    final statusFormatted = status == 'healthy' ? 'Sağlıklı' : 'Sağlıksız';
     return '$plantName $statusFormatted';
   }
 
