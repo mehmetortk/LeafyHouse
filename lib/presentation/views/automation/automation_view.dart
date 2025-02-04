@@ -39,10 +39,8 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
         setState(() {
           plant = receivedPlant;
         });
-        print('AutomationView - Loading settings for plant ID: ${plant!.id}');
         ref.read(automationProvider.notifier).loadSettings(plant!.id);
       } else {
-        print('AutomationView - No plant received');
         Navigator.pop(context);
       }
     });
@@ -106,16 +104,26 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text(
+        backgroundColor: Theme.of(context).dialogBackgroundColor,
+        title: Text(
           "Bilgi",
-          style: TextStyle(color: Colors.black87),
+          style: TextStyle(
+              color: Theme.of(context).textTheme.headlineSmall?.color),
         ),
-        content: const Text("Bu sayfada otomasyon kontrol ayarları bulunmaktadır."),
+        content: Text(
+          "Bu sayfada otomasyon kontrol ayarları bulunmaktadır.",
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Tamam"),
+            child: Text(
+              "Tamam",
+              style: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).colorScheme.secondary
+                      : Colors.green),
+            ),
           ),
         ],
       ),
@@ -125,9 +133,11 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
   @override
   Widget build(BuildContext context) {
     final automationState = ref.watch(automationProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (automationState.settings != null && !_controllersInitialized) {
-      frequencyController.text = automationState.settings!.frequency.toString();
+      frequencyController.text =
+          automationState.settings!.frequency.toString();
       amountController.text = automationState.settings!.amount.toString();
       photoFrequencyController.text =
           automationState.settings!.photoFrequency.toString();
@@ -136,154 +146,151 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
+            Theme.of(context).scaffoldBackgroundColor,
         title: Text(plant?.name ?? "Otomasyon Ayarları"),
-        backgroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.info_outline, color: Colors.black87),
+            icon: Icon(
+              Icons.info_outline,
+              color: isDark ? Colors.white : Colors.green[900],
+            ),
             onPressed: showInfoDialog,
           )
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // Watering Control Card
-                Card(
-                  elevation: 6,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  color: Colors.transparent, // Card rengini şeffaf yapıyoruz
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFB9F6CA), Color(0xFFDCEDC8)], // Açık yeşil tonlar
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          const Text(
-                            "Sulama Kontrol",
-                            style: TextStyle(
+      backgroundColor: isDark ? Colors.black : Colors.grey[100],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Watering Control Card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: isDark
+                      ? BorderSide.none
+                      : const BorderSide(color: Colors.green, width: 1),
+                ),
+                color: isDark ? null : Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Text(
+                        "Sulama Kontrol",
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white, // updated to white
+                              color: isDark ? Theme.of(context).colorScheme.secondary : Colors.green,
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: toggleWatering,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.grey, // Yazı ve ikon rengi
-                                elevation: 0, // Gölge kaldırma
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 12, horizontal: 30), // smaller padding
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                  side: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                textStyle: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              child: Text(
-                                isWatering
-                                    ? "Sulamayı Durdur"
-                                    : "Sulamayı Başlat",
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
-                          ),
-                          if (isWatering)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 12.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.timer,
-                                    color: Colors.green,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Süre: ${seconds}s',
-                                    style: const TextStyle(fontSize: 18, color: Colors.white),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
                       ),
-                    ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: toggleWatering,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isDark
+                                ? Theme.of(context).colorScheme.background
+                                : Colors.greenAccent,
+                            foregroundColor: isDark
+                                ? Theme.of(context).textTheme.labelLarge?.color
+                                : Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 30),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              side: isDark
+                                  ? BorderSide.none
+                                  : const BorderSide(color: Colors.green, width: 1),
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          child: Text(
+                            isWatering ? "Sulamayı Durdur" : "Sulamayı Başlat",
+                          ),
+                        ),
+                      ),
+                      if (isWatering)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.timer,
+                                color: isDark ? Theme.of(context).colorScheme.secondary : Colors.green,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Süre: ${seconds}s',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      color: isDark ? null : Colors.green[900],
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                // Automation Settings Card
-                Card(
-                  elevation: 6,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  color: Colors.transparent,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFB9F6CA), Color(0xFFDCEDC8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          const Text(
-                            "Otomasyon Ayarları",
-                            style: TextStyle(
+              ),
+              const SizedBox(height: 20),
+              // Automation Settings Card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: isDark
+                      ? BorderSide.none
+                      : const BorderSide(color: Colors.green, width: 1),
+                ),
+                color: isDark ? null : Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Text(
+                        "Otomasyon Ayarları",
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white, // updated to white
+                              color: isDark ? Theme.of(context).colorScheme.secondary : Colors.green,
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          SwitchListTile(
-                            title: const Text(
-                              "Otomasyon Durumu",
-                              style: TextStyle(fontSize: 18, color: Colors.white), // updated to white
-                            ),
-                            activeColor: Colors.green,
-                            value: _automationEnabled,
-                            onChanged: (value) async {
-                              await _toggleAutomationStatus();
-                            },
-                          ),
-                          // Additional settings fields (frequency, amount, photoFrequency) can be displayed here if needed.
-                        ],
                       ),
-                    ),
+                      const SizedBox(height: 10),
+                      SwitchListTile(
+                        title: Text(
+                          "Otomasyon Durumu",
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: isDark ? Theme.of(context).colorScheme.secondary : Colors.green,
+                                fontSize: 18,
+                              ),
+                        ),
+                        activeColor: isDark
+                            ? Theme.of(context).colorScheme.secondary
+                            : Colors.greenAccent,
+                        value: _automationEnabled,
+                        onChanged: (value) async {
+                          await _toggleAutomationStatus();
+                        },
+                      ),
+                      // Ek ayar alanları eklenebilir.
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

@@ -76,6 +76,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
       extendBodyBehindAppBar: true,
       body: Container(
         width: double.infinity,
+        height: MediaQuery.of(context).size.height, // Ekran yüksekliğini ayarla
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [Colors.teal.shade300, Colors.teal.shade700],

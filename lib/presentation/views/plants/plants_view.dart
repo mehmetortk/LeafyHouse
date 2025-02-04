@@ -13,14 +13,14 @@ class PlantsView extends ConsumerStatefulWidget {
 }
 
 class _PlantsViewState extends ConsumerState<PlantsView> {
-  File? imageFile; // State'e ekle
+  File? imageFile;
+  
   @override
   void initState() {
     super.initState();
 
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      // Delay the call to loadPlants
       Future.microtask(() {
         ref.read(plantsProvider.notifier).loadPlants(user.uid);
       });
@@ -35,19 +35,45 @@ class _PlantsViewState extends ConsumerState<PlantsView> {
   Widget build(BuildContext context) {
     final plantsState = ref.watch(plantsProvider);
     final notifier = ref.read(plantsProvider.notifier);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Bitkilerim"),
+        title: Text(
+          "Bitkilerim",
+          style: Theme.of(context).appBarTheme.titleTextStyle,
+        ),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? 
+            Theme.of(context).scaffoldBackgroundColor,
+        elevation: 4,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () async {
-              await Navigator.pushNamed(context, '/addPlant');
-            },
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                await Navigator.pushNamed(context, '/addPlant');
+              },
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text(
+                "Ekle",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDark ? Colors.green.shade700 : Colors.green,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+              ),
+            ),
           ),
         ],
       ),
+      backgroundColor: isDark ? Colors.black : Colors.grey[100],
       body: _buildBody(context, plantsState, notifier),
     );
   }
@@ -70,6 +96,7 @@ class _PlantsViewState extends ConsumerState<PlantsView> {
     }
 
     return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 12),
       itemCount: plantsState.plants.length,
       itemBuilder: (context, index) {
         final plant = plantsState.plants[index];
@@ -83,27 +110,40 @@ class _PlantsViewState extends ConsumerState<PlantsView> {
     Plant plant,
     PlantsNotifier notifier,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
+        side: isDark 
+            ? BorderSide.none 
+            : const BorderSide(color: Colors.green, width: 1.5),
       ),
+      color: isDark ? Colors.grey[850] : Colors.white,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         leading: CircleAvatar(
-          backgroundImage: _buildPlantImage(plant.imageUrl),
           radius: 30,
+          backgroundImage: _buildPlantImage(plant.imageUrl),
+          backgroundColor: Colors.transparent,
         ),
         title: Text(
           plant.name,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: isDark ? Colors.white : Colors.green[900],
+          ),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 6.0),
           child: Text(
             "Tür: ${plant.type}",
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
+            style: TextStyle(
+              fontSize: 16,
+              color: isDark ? Colors.white70 : Colors.grey[700],
+            ),
           ),
         ),
         trailing: FittedBox(
@@ -111,16 +151,17 @@ class _PlantsViewState extends ConsumerState<PlantsView> {
             children: [
               IconButton(
                 tooltip: "Ayarlar",
-                icon: const Icon(Icons.settings, color: Colors.blueAccent),
+                icon: Icon(
+                  Icons.settings,
+                  color: isDark ? Theme.of(context).colorScheme.secondary : Colors.green,
+                ),
                 onPressed: () async {
-                  // Clear automation settings before navigation
                   ref.read(automationProvider.notifier).clearSettings();
                   await Navigator.pushNamed(
                     context,
                     '/automation',
                     arguments: plant,
                   ).then((_) {
-                    // Refresh plants list when returning
                     final user = FirebaseAuth.instance.currentUser;
                     if (user != null) {
                       ref.read(plantsProvider.notifier).loadPlants(user.uid);
@@ -130,7 +171,10 @@ class _PlantsViewState extends ConsumerState<PlantsView> {
               ),
               IconButton(
                 tooltip: "Düzenle",
-                icon: const Icon(Icons.edit, color: Colors.blue),
+                icon: Icon(
+                  Icons.edit,
+                  color: isDark ? Theme.of(context).colorScheme.secondary : Colors.green[700],
+                ),
                 onPressed: () async {
                   final updatedPlant = await Navigator.pushNamed(
                     context,
@@ -174,8 +218,7 @@ class _PlantsViewState extends ConsumerState<PlantsView> {
     return const AssetImage('assets/images/app_logo.png');
   }
 
-  Future<void> _showDeleteConfirmationDialog(
-      String plantId, Plant plant) async {
+  Future<void> _showDeleteConfirmationDialog(String plantId, Plant plant) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -197,7 +240,6 @@ class _PlantsViewState extends ConsumerState<PlantsView> {
     if (confirmed == true) {
       try {
         await ref.read(plantsProvider.notifier).removePlant(plantId, plant);
-
         if (mounted) {
           showSuccessMessage(context, 'Bitki başarı ile silindi.');
         }

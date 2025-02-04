@@ -14,7 +14,7 @@ class PlantHistoryView extends StatefulWidget {
 
 class _PlantHistoryViewState extends State<PlantHistoryView> {
   List<Map<String, dynamic>> images = [];
-  int currentPageIndex = 0; // yeni eklendi
+  int currentPageIndex = 0;
 
   @override
   void initState() {
@@ -29,27 +29,23 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
     if (snapshot.snapshot.value != null) {
       final data = snapshot.snapshot.value as Map<dynamic, dynamic>;
       List<Map<String, dynamic>> tempImages = [];
-
       data.forEach((key, value) {
         tempImages.add({
-          'key': key, // include key for deletion
+          'key': key,
           'url': value['imageUrl'],
           'label': value['label'],
           'date': DateTime.parse(value['date']),
         });
       });
-
-      // Sort from newest to oldest
+      // Sort from newest to oldest and take up to 24 images
       tempImages.sort((a, b) => b['date'].compareTo(a['date']));
-      // Take the last 24 images, or fewer if not available
       setState(() {
         images = tempImages.take(24).toList();
-        currentPageIndex = 0; // always start at the first page
+        currentPageIndex = 0;
       });
     }
   }
 
-  // Create a helper to delete an image from Firebase and update the UI
   Future<void> _deleteImage(dynamic key) async {
     final historyRef = FirebaseDatabase.instance.ref().child('plant_history');
     await historyRef.child(key.toString()).remove();
@@ -58,32 +54,93 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
     });
   }
 
-  // Updated _showImageDialog method:
-  void _showImageDialog(String imageUrl) {
+  void _showImageDialog(String imageUrl, String label, bool isDark) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Stack(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: isDark
+                ? BorderSide.none
+                : const BorderSide(color: Colors.green, width: 1),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  height: MediaQuery.of(context).size.height * 0.5,
-                  width: double.infinity,
+              // Header with gradient background
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [
+                            Theme.of(context).colorScheme.secondary.withOpacity(0.9),
+                            Theme.of(context).colorScheme.secondary,
+                          ]
+                        : [
+                            Colors.greenAccent[400]!,
+                            Colors.green,
+                          ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: const Text(
+                  "Görsel Değerlendirmesi",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+              // Image preview
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              // Label content
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Close button
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: TextButton.styleFrom(
+                    foregroundColor:
+                        isDark ? Theme.of(context).colorScheme.secondary : Colors.green,
+                  ),
+                  child: const Text(
+                    "Kapat",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -93,8 +150,88 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
     );
   }
 
+  void _showInfoDialog(bool isDark) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: isDark
+                ? BorderSide.none
+                : const BorderSide(color: Colors.green, width: 1),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? null : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        "Bilgi",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      constraints: const BoxConstraints(),
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                        Icons.close,
+                        color: isDark ? Colors.white : Colors.green,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  "Bu sayfada son 3 günlük görseller bulunmaktadır.",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isDark
+                        ? Theme.of(context).colorScheme.secondary
+                        : Colors.greenAccent[400],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    "Tamam",
+                    style: TextStyle(
+                      color: isDark
+                          ? Theme.of(context).colorScheme.onSecondary
+                          : Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final int perPage = 8;
     final int totalPages = (images.length / perPage).ceil();
     final int startIndex = currentPageIndex * perPage;
@@ -104,74 +241,18 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Bitki Geçmişi'),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
+            Theme.of(context).scaffoldBackgroundColor,
         centerTitle: true,
         elevation: 4,
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return Dialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  "Bilgi",
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                constraints: const BoxConstraints(),
-                                padding: EdgeInsets.zero,
-                                icon: const Icon(Icons.close),
-                                onPressed: () => Navigator.of(context).pop(),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            "Bu sayfada son 3 günlük görseller bulunmaktadır.",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          const SizedBox(height: 12),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text(
-                              "Tamam",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
+            onPressed: () => _showInfoDialog(isDark),
           ),
         ],
       ),
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: images.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -187,14 +268,22 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
                         direction: DismissDirection.endToStart,
                         background: Container(
                           decoration: BoxDecoration(
-                            color: Colors.red.shade300,
+                            color: isDark
+                                ? Theme.of(context).colorScheme.error.withOpacity(0.7)
+                                : Colors.green.withOpacity(0.7),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           margin: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
-                          child: const Icon(Icons.delete, color: Colors.white, size: 28),
+                          child: Icon(
+                            Icons.delete,
+                            color: isDark
+                                ? Theme.of(context).colorScheme.onError
+                                : Colors.white,
+                            size: 28,
+                          ),
                         ),
                         onDismissed: (_) {
                           _deleteImage(image['key']);
@@ -204,101 +293,50 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
                           elevation: 4,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
+                            side: isDark
+                                ? BorderSide.none
+                                : const BorderSide(color: Colors.green, width: 1),
                           ),
+                          color: isDark ? null : Colors.white,
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(12),
-                            leading: GestureDetector(
-                              onTap: () => _showImageDialog(image['url']),
-                              child: Hero(
-                                tag: image['key'],
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    image['url'],
-                                    width: MediaQuery.of(context).size.width / 3.5,
-                                    height: MediaQuery.of(context).size.width / 3.5,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return const Center(
-                                          child: CircularProgressIndicator());
-                                    },
+                            leading: SizedBox(
+                              width: 60,
+                              height: 60,
+                              child: GestureDetector(
+                                onTap: () {
+                                  _showImageDialog(image['url'], image['label'], isDark);
+                                },
+                                child: Hero(
+                                  tag: image['key'],
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.network(
+                                      image['url'],
+                                      width: 60, // sabit genişlik
+                                      height: 60, // sabit yükseklik
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (context, child, progress) {
+                                        if (progress == null) return child;
+                                        return const Center(child: CircularProgressIndicator());
+                                      },
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                             title: GestureDetector(
                               onTap: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return Dialog(
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          // Header with gradient background
-                                          Container(
-                                            width: double.infinity,
-                                            padding: const EdgeInsets.all(16),
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                colors: [Colors.green.shade700, Colors.green],
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                              ),
-                                              borderRadius: const BorderRadius.only(
-                                                topLeft: Radius.circular(20),
-                                                topRight: Radius.circular(20),
-                                              ),
-                                            ),
-                                            child: const Text(
-                                              "Görsel Değerlendirmesi",
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                          // Message content
-                                          Padding(
-                                            padding: const EdgeInsets.all(16),
-                                            child: Text(
-                                              image['label'],
-                                              style: const TextStyle(fontSize: 16, color: Colors.black87),
-                                            ),
-                                          ),
-                                          // Close button
-                                          Align(
-                                            alignment: Alignment.centerRight,
-                                            child: TextButton(
-                                              onPressed: () => Navigator.of(context).pop(),
-                                              style: TextButton.styleFrom(
-                                                foregroundColor: Colors.green,
-                                              ),
-                                              child: const Text(
-                                                "Kapat",
-                                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                );
+                                _showImageDialog(image['url'], image['label'], isDark);
                               },
                               child: Padding(
                                 padding: const EdgeInsets.only(bottom: 4.0),
                                 child: Text(
                                   image['label'],
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.black87,
+                                    color: isDark ? Colors.white : Colors.green,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -310,9 +348,9 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
                               child: Text(
                                 DateFormat('yyyy-MM-dd HH:mm:ss')
                                     .format(image['date']),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.black54,
+                                  color: isDark ? Colors.white : Colors.black54,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -341,17 +379,19 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
                               : null,
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: Colors.green.shade100,
+                            color: isDark
+                                ? Theme.of(context).colorScheme.secondary.withOpacity(0.3)
+                                : Colors.greenAccent.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(30),
                           ),
                           child: Text(
                             'Sayfa ${currentPageIndex + 1} / $totalPages',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : Colors.green,
                             ),
                           ),
                         ),

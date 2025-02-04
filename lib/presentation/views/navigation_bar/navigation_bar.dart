@@ -5,7 +5,7 @@ import '../home_page/home_view.dart';
 import '../plants/plants_view.dart';
 import '../settings/settings_view.dart'; // Ayarlar sayfasını import edin
 import '../notification/notification_view.dart'; // Ayarlar sayfasını import edin
-import '../../../providers/notifications_provider.dart';
+import '../../providers/notifications_provider.dart';
 
 class MainNavigationBar extends StatefulWidget {
   const MainNavigationBar({super.key});
@@ -81,12 +81,12 @@ class _MainNavigationBarState extends State<MainNavigationBar> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.green,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Theme.of(context).colorScheme.secondary,
+        unselectedItemColor: Theme.of(context).iconTheme.color,
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).bottomAppBarTheme.color,
         elevation: 10,
       ),
     );

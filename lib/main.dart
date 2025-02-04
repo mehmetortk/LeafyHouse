@@ -14,6 +14,7 @@ import 'presentation/views/plants/plant_info_details_view.dart';
 import 'presentation/views/automation/automation_view.dart';
 import 'presentation/views/settings/settings_view.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'presentation/providers/theme_provider.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("FCM Arka Plan Mesajı: ${message.messageId}");
@@ -41,17 +42,19 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = ref.watch(themeProvider);
+    final themeNotifier = ref.read(themeProvider.notifier);
+    final currentTheme = isDark ? themeNotifier.darkTheme : themeNotifier.lightTheme;
     return MaterialApp(
-      title: 'Leafy House',
-      theme: ThemeData(primarySwatch: Colors.green),
-      initialRoute: '/',
+      theme: currentTheme,
+      initialRoute: '/splash',
       routes: {
-        '/': (context) => SplashScreen(),
+        '/splash': (context) => const SplashScreen(),
         '/login': (context) => LoginView(),
         '/register': (context) => RegisterView(),
         '/home': (context) => MainNavigationBar(),

@@ -9,6 +9,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import '../../../domain/entities/plant.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'plant_history_view.dart';
+
 class PlantInfoDetailsView extends ConsumerStatefulWidget {
   const PlantInfoDetailsView({Key? key}) : super(key: key);
 
@@ -70,10 +71,7 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
     try {
       _interpreter = await Interpreter.fromAsset('assets/model/model.tflite');
 
-      final ListResult result = await FirebaseStorage.instance
-          .ref('images')
-          .listAll();
-
+      final ListResult result = await FirebaseStorage.instance.ref('images').listAll();
       Reference? newestRef;
       DateTime latestTime = DateTime(1970);
 
@@ -87,14 +85,12 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
 
       if (newestRef != null) {
         final String imageUrl = await newestRef.getDownloadURL();
-        print('En yeni görsel URL: $imageUrl');
 
         // Veritabanında bu görsel için zaten bir sonuç olup olmadığını kontrol et
         final historyRef = _databaseReference.child('plant_history');
         final snapshot = await historyRef.orderByChild('imageUrl').equalTo(imageUrl).once();
 
         if (snapshot.snapshot.value != null) {
-          print('Bu görsel için zaten bir sonuç var.');
           final data = snapshot.snapshot.value as Map<dynamic, dynamic>;
           final existingLabel = data.values.first['label'];
           setState(() {
@@ -115,47 +111,41 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
           var final_input = input.reshape([1, 224, 224, 3]);
 
           _interpreter?.run(final_input, output);
-          print('After running interpreter');
 
-          // Calculate max confidence
           double maxConfidence = output[0].reduce((a, b) => a > b ? a : b);
-          print(maxConfidence);
           int maxIndex = output[0].indexOf(maxConfidence);
-          String label = maxConfidence > 0.63 ? getLabel(maxIndex) : 'Görsel algılanamadı! \nBu bir bitki görseli olmayabilir veya veri setinde mevcut olmayan bir bitki olabilir.';
+          String label = maxConfidence > 0.63
+              ? getLabel(maxIndex)
+              : 'Görsel algılanamadı!\nBu bir bitki görseli olmayabilir veya veri setinde mevcut olmayan bir bitki olabilir.';
 
           setState(() {
             health_status = label;
           });
-          print('Health status updated to: $health_status');
 
-          // Model sonucunu veritabanına kaydet
+          // Sonucu veritabanına kaydet
           await _databaseReference.child('plant_history').push().set({
             'imageUrl': imageUrl,
             'label': label,
             'date': DateTime.now().toIso8601String(),
           });
         } else {
-          print('Failed to decode image.');
           setState(() {
             health_status = 'Görsel algılanamadı!';
           });
         }
       } else {
-        print('No images found in Firebase Storage.');
         setState(() {
           health_status = 'Görsel algılanamadı!';
         });
       }
     } catch (e) {
-      print('Error in _loadModelAndClassifyImage: $e');
       setState(() {
         health_status = 'Görsel algılanamadı!';
       });
     }
   }
 
-  List<double> imageToByteListFloat32(
-      img.Image image, int inputSize, double mean, double std) {
+  List<double> imageToByteListFloat32(img.Image image, int inputSize, double mean, double std) {
     var convertedBytes = <double>[];
     for (var y = 0; y < inputSize; y++) {
       for (var x = 0; x < inputSize; x++) {
@@ -176,10 +166,9 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
         setState(() {
           moisture = newMoisture.toInt();
         });
-        print('Moisture data fetched: $newMoisture');
       });
     } catch (e) {
-      print('Error fetching moisture data: $e');
+      // Hata yönetimi
     }
   }
 
@@ -209,12 +198,13 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
     final parts = label.split('_');
     if (parts.length < 2) return label;
     final status = parts.last;
-    final plantName = parts.sublist(0, parts.length - 1).map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
+    final plantName = parts.sublist(0, parts.length - 1)
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
     final statusFormatted = status == 'healthy' ? 'Sağlıklı' : 'Sağlıksız';
     return '$plantName $statusFormatted';
   }
 
-  // Add a helper function to return the appropriate emoji based on health_status
   String _getHealthEmoji(String status) {
     if (status.contains("Sağlıklı")) {
       return "😊";
@@ -228,40 +218,42 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (plant == null) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Plant Details'),
+          backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         ),
-        body: const Center(
-          child: Text('Plant data not available.'),
-        ),
+        body: const Center(child: Text('Plant data not available.')),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(plant!.name),
-        backgroundColor: Colors.white,
+        title: Text(
+          plant!.name,
+          style: Theme.of(context).appBarTheme.titleTextStyle,
+        ),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        elevation: 2,
       ),
+      backgroundColor: isDark ? Colors.black : Colors.grey[100],
       body: latestImageUrl == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Image card with rounded borders and shadow
-                  Center(
-                    child: Card(
-                      elevation: 6,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
+                  // Üst Görsel Bölümü - Stack içinde image ve overlay title
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
                         child: SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.33,
+                          height: MediaQuery.of(context).size.height * 0.35,
                           width: double.infinity,
                           child: Image.network(
                             latestImageUrl!,
@@ -269,90 +261,155 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Plant Name and Type
-                  Text(
-                    plant!.name,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Tür: ${plant!.type}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      color: Colors.black54,
-                    ),
-                  ),
-                  const Divider(height: 30, thickness: 1),
-                  // Moisture and Health Status Card with icons
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          // Moisture widget
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.opacity,
-                                  color: Colors.lightBlue, size: 32),
-                              const SizedBox(height: 8),
-                              Text(
-                                '%$moisture',
-                                style: const TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'Nem',
-                                style: TextStyle(
-                                    fontSize: 16, color: Colors.black54),
-                              ),
+                      Container(
+                        height: MediaQuery.of(context).size.height * 0.35,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              isDark ? Colors.black54 : Colors.black26,
                             ],
                           ),
-                          // Vertical Divider
-                          Container(
-                            height: 60,
-                            width: 1,
-                            color: Colors.grey.shade300,
-                          ),
-                          // Health Status widget
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 16,
+                        left: 16,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              plant!.name,
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 4.0,
+                                    color: Colors.black45,
+                                    offset: const Offset(2, 2),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tür: ${plant!.type}',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // Bilgi Kartı (Nem ve Sağlık)
+                  Card(
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    color: isDark ? Colors.grey[850] : Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      child: Row(
+                        children: [
                           Expanded(
                             child: Column(
-                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.health_and_safety,
-                                    color: Colors.redAccent, size: 32),
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: isDark
+                                          ? [Colors.blueGrey, Colors.blue]
+                                          : [Colors.greenAccent, Colors.green],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.opacity,
+                                    size: 30,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '%$moisture',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : Colors.green[900],
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Nem',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: isDark ? Colors.white70 : Colors.grey[800],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            height: 80,
+                            width: 1,
+                            color: isDark ? Colors.white30 : Colors.grey[300],
+                          ),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: isDark
+                                          ? [Colors.deepOrange, Colors.orange]
+                                          : [Colors.greenAccent, Colors.green],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.health_and_safety,
+                                    size: 30,
+                                    color: Colors.white,
+                                  ),
+                                ),
                                 const SizedBox(height: 8),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Flexible(
                                       child: Text(
                                         health_status,
                                         textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 16,
+                                        style: TextStyle(
+                                          fontSize: 18,
                                           fontWeight: FontWeight.bold,
+                                          color: isDark ? Colors.white : Colors.black,
                                         ),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
                                       _getHealthEmoji(health_status),
-                                      style: const TextStyle(fontSize: 20),
+                                      style: const TextStyle(fontSize: 24),
                                     ),
                                   ],
                                 ),
@@ -363,32 +420,38 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  // Button to navigate to Plant History View
+                  const SizedBox(height: 30),
+                  // Geçmişe Git Butonu
                   Center(
                     child: ElevatedButton.icon(
-                      icon: const Icon(Icons.history, color: Colors.white),
+                      icon: const Icon(
+                        Icons.history,
+                        color: Colors.white, // Always white
+                      ),
                       label: const Text(
                         'Bitki Geçmişini Göster',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white, // Always white
+                        ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white, // Yazı ve ikon rengi beyaz
+                        backgroundColor: isDark
+                            ? Theme.of(context).colorScheme.secondary
+                            : Colors.greenAccent[400],
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 30, vertical: 14),
-                        textStyle: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                            horizontal: 36, vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(24),
                         ),
+                        elevation: 4,
                       ),
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                PlantHistoryView(plantId: plant!.id),
+                            builder: (context) => PlantHistoryView(plantId: plant!.id),
                           ),
                         );
                       },
@@ -400,4 +463,3 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
     );
   }
 }
-

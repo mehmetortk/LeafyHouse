@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../plants/plants_view.dart';
-import '../../../providers/notifications_provider.dart';
+import '../../providers/notifications_provider.dart';
 
 // Provider for filtering unread notifications
 final unreadOnlyProvider = StateProvider<bool>((ref) => false);
@@ -23,10 +23,14 @@ class NotificationsView extends ConsumerWidget {
         ? allNotifications.where((n) => !n.isRead).toList()
         : allNotifications;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final noNotificationTextColor = isDark ? Colors.white : Colors.black54;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Bildirimler"),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
+            Theme.of(context).scaffoldBackgroundColor,
         centerTitle: true,
         elevation: 4,
       ),
@@ -48,23 +52,32 @@ class NotificationsView extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: CheckboxListTile(
-                    title: const Text("Sadece okunmamışları göster"),
+                    title: Text(
+                      "Sadece okunmamışları göster",
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                      ),
+                    ),
                     value: unreadOnly,
-                    activeColor: Colors.green,
-                    onChanged: (value) =>
-                        ref.read(unreadOnlyProvider.notifier).state = value ?? false,
+                    activeColor: Theme.of(context).colorScheme.secondary,
+                    onChanged: (value) => ref
+                        .read(unreadOnlyProvider.notifier)
+                        .state = value ?? false,
                     controlAffinity: ListTileControlAffinity.leading,
                   ),
                 ),
               ),
               // Notification List
               notifications.isEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.only(top: 50),
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 50),
                       child: Center(
                         child: Text(
                           "Henüz bildirim yok.",
-                          style: TextStyle(fontSize: 18, color: Colors.black54),
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: noNotificationTextColor,
+                          ),
                         ),
                       ),
                     )
@@ -74,16 +87,37 @@ class NotificationsView extends ConsumerWidget {
                       itemCount: notifications.length,
                       itemBuilder: (context, index) {
                         final item = notifications[index];
+                        // Determine icon and text colors based on theme and read status.
+                        Color leadingIconColor;
+                        Color titleTextColor;
+                        Color subtitleTextColor;
+                        Color trailingIconColor;
+                        
+                        if (isDark) {
+                          leadingIconColor = item.isRead ? Colors.grey : Colors.white;
+                          titleTextColor = item.isRead ? Colors.grey : Colors.white;
+                          subtitleTextColor = item.isRead ? Colors.grey : Colors.white;
+                          trailingIconColor = item.isRead ? Colors.grey : Colors.white70;
+                        } else {
+                          leadingIconColor = item.isRead ? Colors.grey : Theme.of(context).colorScheme.secondary;
+                          titleTextColor = item.isRead ? Colors.grey : Colors.black;
+                          subtitleTextColor = item.isRead ? Colors.grey : Colors.black54;
+                          trailingIconColor = item.isRead ? Colors.black38 : Theme.of(context).colorScheme.secondary;
+                        }
+                        
                         return Dismissible(
                           key: UniqueKey(),
                           background: Container(
                             decoration: BoxDecoration(
-                              color: Colors.redAccent,
+                              color: Theme.of(context).colorScheme.error,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             alignment: Alignment.centerRight,
                             padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: const Icon(Icons.delete, color: Colors.white),
+                            child: Icon(
+                              Icons.delete,
+                              color: Theme.of(context).colorScheme.onError,
+                            ),
                           ),
                           direction: DismissDirection.endToStart,
                           onDismissed: (_) {
@@ -105,7 +139,7 @@ class NotificationsView extends ConsumerWidget {
                                   item.isRead
                                       ? Icons.mark_email_read
                                       : Icons.mark_email_unread,
-                                  color: item.isRead ? Colors.grey : Colors.green,
+                                  color: leadingIconColor,
                                   size: 28,
                                 ),
                                 title: Text(
@@ -113,37 +147,36 @@ class NotificationsView extends ConsumerWidget {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    color: item.isRead ? Colors.grey : Colors.black,
                                     fontWeight: FontWeight.w500,
+                                    color: titleTextColor,
                                   ),
                                 ),
                                 subtitle: Padding(
                                   padding: const EdgeInsets.only(top: 4),
                                   child: Text(
                                     _formatDate(item.date),
-                                    style: const TextStyle(
-                                      color: Colors.black54,
+                                    style: TextStyle(
                                       fontSize: 13,
+                                      color: subtitleTextColor,
                                     ),
                                   ),
                                 ),
-                                trailing: const Icon(
+                                trailing: Icon(
                                   Icons.arrow_forward_ios,
                                   size: 16,
-                                  color: Colors.black38,
+                                  color: trailingIconColor,
                                 ),
                                 onTap: () {
                                   if (!item.isRead) {
                                     ref
                                         .read(notificationsProvider.notifier)
                                         .markAsRead(item);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) =>  PlantsView()),
+                                    );
                                   }
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>  PlantsView(),
-                                    ),
-                                  );
                                 },
                               ),
                             ),

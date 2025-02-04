@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../providers/theme_provider.dart';
 import '../../view_models/auth_notifier.dart';
 
 class SettingsView extends ConsumerWidget {
@@ -15,7 +16,8 @@ class SettingsView extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Ayarlar"),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
+            Theme.of(context).scaffoldBackgroundColor,
         centerTitle: true,
         actions: [
           IconButton(
@@ -42,12 +44,48 @@ class SettingsView extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: ListTile(
-                      leading: const Icon(Icons.account_circle, size: 40, color: Colors.green),
+                      leading: Icon(
+                        Icons.account_circle,
+                        size: 40,
+                        color: Theme.of(context).iconTheme.color,
+                      ),
                       title: const Text(
                         "Hesabım",
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text("Email: ${authState.user?.email ?? 'Bilinmiyor'}"),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Dark Mode Switch Card
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        final isDarkMode = ref.watch(themeProvider);
+                        final switchTitle =
+                            isDarkMode ? "Aydınlık Mod" : "Karanlık Mod";
+                        final switchIcon =
+                            isDarkMode ? Icons.wb_sunny : Icons.dark_mode;
+                        return SwitchListTile(
+                          title: Text(
+                            switchTitle,
+                            style: TextStyle(
+                                color: Theme.of(context).textTheme.bodyLarge?.color),
+                          ),
+                          value: isDarkMode,
+                          onChanged: (value) {
+                            ref.read(themeProvider.notifier).toggleTheme(value);
+                          },
+                          secondary: Icon(
+                            switchIcon,
+                            color: Theme.of(context).iconTheme.color,
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -58,33 +96,56 @@ class SettingsView extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: ListTile(
-                      leading: const Icon(Icons.logout, color: Colors.red, size: 32),
+                      leading: Icon(
+                        Icons.logout,
+                        color: Theme.of(context).colorScheme.error,
+                        size: 32,
+                      ),
                       title: const Text(
                         "Çıkış Yap",
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       onTap: () async {
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.setBool("remember_me", false);
-                        await authNotifier.logout();
-
-                        if (authState.errorMessage != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                "Çıkış Yapılırken Hata Oluştu: ${authState.errorMessage}",
+                        final result = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text("Çıkış"),
+                            content: const Text("Çıkış yapmak istediğinize emin misiniz?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: const Text("İptal"),
                               ),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Başarıyla Çıkış Yapıldı"),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                          Navigator.pushReplacementNamed(context, '/login');
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: const Text("Evet"),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (result == true) {
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setBool("remember_me", false);
+                          await authNotifier.logout();
+
+                          if (authState.errorMessage != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  "Çıkış Yapılırken Hata Oluştu: ${authState.errorMessage}",
+                                ),
+                                backgroundColor: Theme.of(context).colorScheme.error,
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text("Başarıyla Çıkış Yapıldı"),
+                                backgroundColor: Theme.of(context).colorScheme.secondary,
+                              ),
+                            );
+                            Navigator.pushReplacementNamed(context, '/login');
+                          }
                         }
                       },
                     ),
@@ -101,6 +162,7 @@ class PlantTypesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     // List of plant types supported by the model
     final plantTypes = <String>[
       'aloe_vera',
@@ -117,35 +179,41 @@ class PlantTypesView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Bitki Türleri"),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
+            Theme.of(context).scaffoldBackgroundColor,
         centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Header Card with gradient background
+            // Header Card with updated style for light mode
             Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
+                side: isDark
+                    ? BorderSide.none
+                    : const BorderSide(color: Colors.green, width: 2),
               ),
+              color: isDark ? null : Colors.white,
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  gradient: const LinearGradient(
-                    colors: [Colors.green, Colors.lightGreen],
-                  ),
+                  color: isDark ? null : Colors.white,
                 ),
-                child: const Text(
+                child: Text(
                   "Uygulamadaki Modelin Desteklediği Bitki Türleri",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark
+                        ? Theme.of(context).textTheme.bodyLarge?.color
+                        : Colors.green,
                   ),
                 ),
               ),
@@ -154,27 +222,42 @@ class PlantTypesView extends StatelessWidget {
             // List of Plant Types with tap navigation to details
             Expanded(
               child: ListView.separated(
-                separatorBuilder: (context, index) => const SizedBox(height: 10),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 10),
                 itemCount: plantTypes.length,
                 itemBuilder: (context, index) {
                   final type = plantTypes[index];
                   final displayType = type
                       .split('_')
                       .map((word) =>
-                          word[0].toUpperCase() + word.substring(1).toLowerCase())
+                          word[0].toUpperCase() +
+                          word.substring(1).toLowerCase())
                       .join(' ');
                   return Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
+                      side: isDark
+                          ? BorderSide.none
+                          : const BorderSide(color: Colors.green, width: 1),
                     ),
+                    color: isDark ? null : Colors.white,
                     child: ListTile(
-                      leading: const Icon(Icons.nature, color: Colors.green),
+                      leading: Icon(
+                        Icons.nature,
+                        color: isDark
+                            ? Theme.of(context).colorScheme.secondary
+                            : Colors.green,
+                      ),
                       title: Text(
                         displayType,
-                        style: const TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDark ? null : Colors.green,
+                        ),
                       ),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      trailing:
+                          const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.green),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -257,6 +340,7 @@ class PlantTypeDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final displayType = plantType
         .split('_')
         .map((word) =>
@@ -266,67 +350,92 @@ class PlantTypeDetailView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(displayType),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
+            Theme.of(context).scaffoldBackgroundColor,
         centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header with gradient background
             const SizedBox(height: 20),
-            // Details Cards
+            // Details Card with updated color scheme for light mode
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Card(
+                color: isDark ? null : Colors.white,
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
+                  side: isDark
+                      ? BorderSide.none
+                      : const BorderSide(color: Colors.green, width: 1),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Başlıklar: light mode'da yeşil, dark mode'da mevcut ayar
                       Text(
                         "Spesifik Özellikler",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green.shade800,
+                          color: isDark
+                              ? Theme.of(context).colorScheme.secondary
+                              : Colors.green,
                         ),
                       ),
                       const SizedBox(height: 10),
+                      // Açıklamalar: light mode'da siyah tonlarında, dark mode'da varsayılan
                       Text(
                         info['Özellikler']!,
-                        style: const TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDark ? null : Colors.black87,
+                        ),
                       ),
-                      const Divider(height: 30),
+                      Divider(
+                          height: 30,
+                          color: isDark ? Colors.white70 : Colors.green),
                       Text(
                         "Sevdikleri Nem Koşulları",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green.shade800,
+                          color: isDark
+                              ? Theme.of(context).colorScheme.secondary
+                              : Colors.green,
                         ),
                       ),
                       const SizedBox(height: 10),
                       Text(
                         info['Nem Koşulları']!,
-                        style: const TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDark ? null : Colors.black87,
+                        ),
                       ),
-                      const Divider(height: 30),
+                      Divider(
+                          height: 30,
+                          color: isDark ? Colors.white70 : Colors.green),
                       Text(
                         "Bakım İpuçları",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green.shade800,
+                          color: isDark
+                              ? Theme.of(context).colorScheme.secondary
+                              : Colors.green,
                         ),
                       ),
                       const SizedBox(height: 10),
                       Text(
                         info['Bakım']!,
-                        style: const TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDark ? null : Colors.black87,
+                        ),
                       ),
                     ],
                   ),
