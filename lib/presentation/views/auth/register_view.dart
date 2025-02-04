@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../view_models/auth_notifier.dart';
-import '../../../core/utils/ui_helpers.dart'; // Hata ve başarı mesajları için
+import '../../../core/utils/ui_helpers.dart';
 
 class RegisterView extends ConsumerStatefulWidget {
   const RegisterView({super.key});
@@ -14,10 +14,8 @@ class RegisterView extends ConsumerStatefulWidget {
 class _RegisterViewState extends ConsumerState<RegisterView> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
 
-  // Parola kriterleri için değişkenler
   bool has8Chars = false;
   bool hasSpecialChar = false;
   bool hasUpperCase = false;
@@ -26,7 +24,6 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
   bool passwordsMatch = false;
   bool passwordIsNotEmpty = false;
 
-  // Parola kontrol fonksiyonu
   void checkPassword(String value) {
     setState(() {
       has8Chars = value.length >= 8;
@@ -35,21 +32,17 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
       hasLowerCase = RegExp(r'[a-z]').hasMatch(value);
       hasNumber = RegExp(r'[0-9]').hasMatch(value);
       passwordsMatch = value == confirmPasswordController.text;
-      passwordIsNotEmpty =
-          value.isNotEmpty && confirmPasswordController.text.isNotEmpty;
+      passwordIsNotEmpty = value.isNotEmpty && confirmPasswordController.text.isNotEmpty;
     });
   }
 
-  // Parola tekrar kontrolü
   void checkConfirmPassword(String value) {
     setState(() {
       passwordsMatch = value == passwordController.text;
-      passwordIsNotEmpty =
-          passwordController.text.isNotEmpty && value.isNotEmpty;
+      passwordIsNotEmpty = passwordController.text.isNotEmpty && value.isNotEmpty;
     });
   }
 
-  // Tüm kriterlerin sağlanıp sağlanmadığını kontrol etme
   bool get isPasswordValid {
     return has8Chars &&
         hasSpecialChar &&
@@ -60,16 +53,16 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
         passwordIsNotEmpty;
   }
 
-  Widget buildPasswordCriteria({required String text, required bool isValid}) {
+  Widget buildPasswordCriteria({required String text}) {
     return Row(
       children: [
         Icon(
-          isValid ? Icons.check_circle : Icons.cancel,
-          color: isValid ? Colors.green : Colors.red,
+          Icons.cancel,
+          color: Colors.red,
           size: 20,
         ),
         SizedBox(width: 5),
-        Expanded(child: Text(text)),
+        Expanded(child: Text(text, style: TextStyle(fontSize: 12))),
       ],
     );
   }
@@ -80,110 +73,197 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
     final authNotifier = ref.read(authProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: Text("Kayıt Ol")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          // Scrollable yapmak için
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.stretch, // Butonları genişletmek için
-            children: [
-              // Logo ve diğer Widget'lar
-              Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(50.0),
-                  child: Image.asset(
-                    'assets/images/app_logo.png', // Logonun yolu
-                    height: 100,
-                    width: 100,
-                  ),
+      extendBodyBehindAppBar: true,
+      body: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.teal.shade300, Colors.teal.shade700],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            // Bu sayede içerik ekranın yüksekliğini aşsa dahi kaydırarak görüntülenir.
+            child: Center(
+              child: Card(
+                elevation: 10,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
-              ),
-              SizedBox(height: 20),
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  labelText: "E-posta",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              SizedBox(height: 20),
-              TextField(
-                controller: passwordController,
-                decoration: InputDecoration(
-                  labelText: "Şifre",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-                obscureText: true,
-                onChanged: checkPassword,
-              ),
-              SizedBox(height: 20),
-              TextField(
-                controller: confirmPasswordController,
-                decoration: InputDecoration(
-                  labelText: "Şifre Tekrar",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-                obscureText: true,
-                onChanged: checkConfirmPassword,
-              ),
-              SizedBox(height: 20),
-              // Parola kriterleri
-              buildPasswordCriteria(
-                  text: "En az 8 karakter", isValid: has8Chars),
-              buildPasswordCriteria(
-                  text: "En az bir özel karakter (?, @, !, #, %, +, -, *, %)",
-                  isValid: hasSpecialChar),
-              buildPasswordCriteria(
-                  text: "En az bir büyük harf", isValid: hasUpperCase),
-              buildPasswordCriteria(
-                  text: "En az bir küçük harf", isValid: hasLowerCase),
-              buildPasswordCriteria(
-                  text: "En az bir rakam (0-9)", isValid: hasNumber),
-              buildPasswordCriteria(
-                  text: "Parolalar eşleşmeli",
-                  isValid: passwordsMatch && passwordIsNotEmpty),
-              SizedBox(height: 30),
-              authState.isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: isPasswordValid
-                          ? () async {
-                              await authNotifier.register(
-                                emailController.text.trim(),
-                                passwordController.text.trim(),
-                              );
-
-                              if (authState.errorMessage != null) {
-                                showErrorMessage(context,
-                                    "Kayıt Başarısız: ${authState.errorMessage}");
-                              } else {
-                                showSuccessMessage(context,
-                                    "Kayıt Başarılı! Giriş yapabilirsiniz.");
-                                Navigator.pop(context); // Giriş ekranına dön
-                              }
-                            }
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    // Main content adjusted to fit in one screen if possible
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Center(
+                        child: Text(
+                          "Kayıt Ol",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.teal.shade700,
+                          ),
                         ),
                       ),
-                      child: Text("Kayıt Ol"),
-                    ),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("Giriş Ekranına Dön"),
+                      SizedBox(height: 20),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(70.0),
+                        child: Image.asset(
+                          'assets/images/app_logo.png',
+                          height: 120,
+                          width: 120,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      TextField(
+                        controller: emailController,
+                        decoration: InputDecoration(
+                          labelText: "E-posta",
+                          prefixIcon: Icon(Icons.email, color: Colors.teal),
+                          filled: true,
+                          fillColor: Colors.grey.shade200,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      SizedBox(height: 15),
+                      TextField(
+                        controller: passwordController,
+                        decoration: InputDecoration(
+                          labelText: "Şifre",
+                          prefixIcon: Icon(Icons.lock, color: Colors.teal),
+                          filled: true,
+                          fillColor: Colors.grey.shade200,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        obscureText: true,
+                        onChanged: checkPassword,
+                      ),
+                      SizedBox(height: 15),
+                      TextField(
+                        controller: confirmPasswordController,
+                        decoration: InputDecoration(
+                          labelText: "Şifre Tekrar",
+                          prefixIcon: Icon(Icons.lock_outline, color: Colors.teal),
+                          filled: true,
+                          fillColor: Colors.grey.shade200,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        obscureText: true,
+                        onChanged: checkConfirmPassword,
+                      ),
+                      // Şartlar sağlanmadığında şifre kriterleri görünür
+                      if ((passwordController.text.isNotEmpty ||
+                              confirmPasswordController.text.isNotEmpty) &&
+                          !isPasswordValid)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (!has8Chars)
+                                buildPasswordCriteria(text: "En az 8 karakter"),
+                              if (!hasSpecialChar)
+                                buildPasswordCriteria(
+                                    text: "En az bir özel karakter (?, @, !, #, %, +, -, *, %)"),
+                              if (!hasUpperCase)
+                                buildPasswordCriteria(text: "En az bir büyük harf"),
+                              if (!hasLowerCase)
+                                buildPasswordCriteria(text: "En az bir küçük harf"),
+                              if (!hasNumber)
+                                buildPasswordCriteria(text: "En az bir rakam (0-9)"),
+                              if (!passwordsMatch || !passwordIsNotEmpty)
+                                buildPasswordCriteria(text: "Parolalar eşleşmeli"),
+                            ],
+                          ),
+                        ),
+                      SizedBox(height: 20),
+                      authState.isLoading
+                          ? Center(child: CircularProgressIndicator())
+                          : Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12.0),
+                                gradient: LinearGradient(
+                                  colors: isPasswordValid
+                                      ? [Colors.teal, Colors.teal.shade700]
+                                      : [Colors.grey.shade400, Colors.grey.shade600],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 4,
+                                    offset: Offset(2, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  onTap: isPasswordValid
+                                      ? () async {
+                                          await authNotifier.register(
+                                            emailController.text.trim(),
+                                            passwordController.text.trim(),
+                                          );
+
+                                          if (authState.errorMessage != null) {
+                                            showErrorMessage(
+                                              context,
+                                              "Kayıt Başarısız: ${authState.errorMessage}",
+                                            );
+                                          } else {
+                                            showSuccessMessage(context, "Kayıt Başarılı! Giriş yapabilirsiniz.");
+                                            Navigator.pop(context);
+                                          }
+                                        }
+                                      : null,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                                    child: Center(
+                                      child: Text(
+                                        "Kayıt Ol",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                      SizedBox(height: 10),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          "Giriş Ekranına Dön",
+                          style: TextStyle(
+                            color: Colors.teal.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ],
+            ),
           ),
         ),
       ),

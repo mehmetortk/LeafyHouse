@@ -30,7 +30,9 @@ class _PlantEditViewState extends ConsumerState<PlantEditView> {
   }
 
   void _onImageSelected(File image) {
-    _imageFile = image;
+    setState(() {
+      _imageFile = image;
+    });
   }
 
   void saveChanges() async {
@@ -43,8 +45,8 @@ class _PlantEditViewState extends ConsumerState<PlantEditView> {
       String? newImageUrl;
       if (_imageFile != null) {
         // Yeni bir görsel seçildiyse, önce storage'a yükle
-      final imageService = ref.read(imageServiceProvider);
-      newImageUrl = await imageService.saveImageToLocalStorage(_imageFile!);
+        final imageService = ref.read(imageServiceProvider);
+        newImageUrl = await imageService.saveImageToLocalStorage(_imageFile!);
       }
 
       final updatedPlant = Plant(
@@ -68,11 +70,13 @@ class _PlantEditViewState extends ConsumerState<PlantEditView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("${plant.name} Detayları"),
+        title: Text("${plant.name} Düzenle"),
+        backgroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: Icon(Icons.save),
+            icon: const Icon(Icons.save),
             onPressed: saveChanges,
+            tooltip: "Değişiklikleri Kaydet",
           ),
         ],
       ),
@@ -81,24 +85,76 @@ class _PlantEditViewState extends ConsumerState<PlantEditView> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              ImagePickerWidget(
-                onImageSelected: _onImageSelected,
-                initialImage: _imageFile,
+              // Image Picker Card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ImagePickerWidget(
+                    onImageSelected: _onImageSelected,
+                    initialImage: _imageFile,
+                  ),
+                ),
               ),
-              SizedBox(height: 20),
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(labelText: "Bitki Adı"),
+              const SizedBox(height: 20),
+              // Form fields in a styled container
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: nameController,
+                        decoration: InputDecoration(
+                          labelText: "Bitki Adı",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: const Icon(Icons.nature),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: typeController,
+                        decoration: InputDecoration(
+                          labelText: "Bitki Türü",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: const Icon(Icons.local_florist),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              SizedBox(height: 10),
-              TextField(
-                controller: typeController,
-                decoration: InputDecoration(labelText: "Bitki Türü"),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: saveChanges,
-                child: Text("Değişiklikleri Kaydet"),
+              const SizedBox(height: 20),
+              // Save Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: saveChanges,
+                  icon: const Icon(Icons.save, color: Colors.white),
+                  label: const Text(
+                    "Bitkiyi Kaydet",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

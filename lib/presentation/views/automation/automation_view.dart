@@ -76,7 +76,6 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
     });
   }
 
-  // Added watering-related functions
   void toggleWatering() {
     setState(() {
       isWatering = !isWatering;
@@ -91,7 +90,7 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
   }
 
   void startTimer() {
-    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         seconds++;
       });
@@ -103,11 +102,30 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
     seconds = 0;
   }
 
+  void showInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text(
+          "Bilgi",
+          style: TextStyle(color: Colors.black87),
+        ),
+        content: const Text("Bu sayfada otomasyon kontrol ayarları bulunmaktadır."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Tamam"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final automationState = ref.watch(automationProvider);
 
-    // Sadece bir kez controller'ları güncelle
     if (automationState.settings != null && !_controllersInitialized) {
       frequencyController.text = automationState.settings!.frequency.toString();
       amountController.text = automationState.settings!.amount.toString();
@@ -119,50 +137,162 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(plant?.name ?? "Otomasyon Ayarları"),
+        backgroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline, color: Colors.black87),
+            onPressed: showInfoDialog,
+          )
+        ],
       ),
-      body: automationState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              // Klavye açıldığında overflow olmaması için
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: toggleWatering,
-                        child: Text(
-                            isWatering ? 'Sulamayı Durdur' : 'Sulamayı Başlat'),
+      body: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                // Watering Control Card
+                Card(
+                  elevation: 6,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  color: Colors.transparent, // Card rengini şeffaf yapıyoruz
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFB9F6CA), Color(0xFFDCEDC8)], // Açık yeşil tonlar
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          const Text(
+                            "Sulama Kontrol",
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white, // updated to white
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: toggleWatering,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.grey, // Yazı ve ikon rengi
+                                elevation: 0, // Gölge kaldırma
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12, horizontal: 30), // smaller padding
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                  side: BorderSide(color: Colors.grey.shade300),
+                                ),
+                                textStyle: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              child: Text(
+                                isWatering
+                                    ? "Sulamayı Durdur"
+                                    : "Sulamayı Başlat",
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (isWatering)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 12.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.timer,
+                                    color: Colors.green,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Süre: ${seconds}s',
+                                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    if (isWatering)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10.0),
-                        child: Text(
-                          'Süre: ${seconds}s',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _toggleAutomationStatus,
-                        child: Text(_automationEnabled
-                            ? "Otomasyonu Durdur"
-                            : "Otomasyonu Aktif Et"),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 20),
+                // Automation Settings Card
+                Card(
+                  elevation: 6,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  color: Colors.transparent,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFB9F6CA), Color(0xFFDCEDC8)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          const Text(
+                            "Otomasyon Ayarları",
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white, // updated to white
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SwitchListTile(
+                            title: const Text(
+                              "Otomasyon Durumu",
+                              style: TextStyle(fontSize: 18, color: Colors.white), // updated to white
+                            ),
+                            activeColor: Colors.green,
+                            value: _automationEnabled,
+                            onChanged: (value) async {
+                              await _toggleAutomationStatus();
+                            },
+                          ),
+                          // Additional settings fields (frequency, amount, photoFrequency) can be displayed here if needed.
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
+          ),
+        ),
+      ),
     );
   }
 
   @override
   void dispose() {
-    _controllersInitialized = false; // Reset the flag
+    _controllersInitialized = false;
     frequencyController.dispose();
     amountController.dispose();
     photoFrequencyController.dispose();

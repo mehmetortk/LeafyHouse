@@ -214,14 +214,26 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
     return '$plantName $statusFormatted';
   }
 
+  // Add a helper function to return the appropriate emoji based on health_status
+  String _getHealthEmoji(String status) {
+    if (status.contains("Sağlıklı")) {
+      return "😊";
+    } else if (status.contains("Sağlıksız")) {
+      return "😢";
+    } else if (status.contains("Görsel algılanamadı")) {
+      return "❓";
+    }
+    return "";
+  }
+
   @override
   Widget build(BuildContext context) {
     if (plant == null) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('Plant Details'),
+          title: const Text('Plant Details'),
         ),
-        body: Center(
+        body: const Center(
           child: Text('Plant data not available.'),
         ),
       );
@@ -230,67 +242,156 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(plant!.name),
+        backgroundColor: Colors.white,
       ),
       body: latestImageUrl == null
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Image card with rounded borders and shadow
                   Center(
-                    child: SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.3,
+                    child: Card(
+                      elevation: 6,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(5),
-                        child: latestImageUrl != null
-                            ? Image.network(
-                                latestImageUrl!,
-                                fit: BoxFit.cover,
-                              )
-                            : Placeholder(),
+                        borderRadius: BorderRadius.circular(16),
+                        child: SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.33,
+                          width: double.infinity,
+                          child: Image.network(
+                            latestImageUrl!,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  SizedBox(height: 16),
-                  // Display plant name
+                  const SizedBox(height: 20),
+                  // Plant Name and Type
                   Text(
                     plant!.name,
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  // Display plant type
-                  Text(
-                    'Tür: ${plant!.type}',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  SizedBox(height: 16),
-                  // Display other plant details
-                  Text('Nem Oranı: %$moisture'),
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(text: 'Sağlık Durumu: '),
-                        TextSpan(
-                          text: health_status,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
-                  SizedBox(height: 16),
-                  // Add button to show plant history
-                  Align(
-                    alignment: Alignment.center,
-                    child: ElevatedButton(
+                  const SizedBox(height: 6),
+                  Text(
+                    'Tür: ${plant!.type}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const Divider(height: 30, thickness: 1),
+                  // Moisture and Health Status Card with icons
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          // Moisture widget
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.opacity,
+                                  color: Colors.lightBlue, size: 32),
+                              const SizedBox(height: 8),
+                              Text(
+                                '%$moisture',
+                                style: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Nem',
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.black54),
+                              ),
+                            ],
+                          ),
+                          // Vertical Divider
+                          Container(
+                            height: 60,
+                            width: 1,
+                            color: Colors.grey.shade300,
+                          ),
+                          // Health Status widget
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.health_and_safety,
+                                    color: Colors.redAccent, size: 32),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        health_status,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      _getHealthEmoji(health_status),
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Button to navigate to Plant History View
+                  Center(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.history, color: Colors.white),
+                      label: const Text(
+                        'Bitki Geçmişini Göster',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white, // Yazı ve ikon rengi beyaz
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 30, vertical: 14),
+                        textStyle: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => PlantHistoryView(plantId: plant!.id),
+                            builder: (context) =>
+                                PlantHistoryView(plantId: plant!.id),
                           ),
                         );
                       },
-                      child: Text('Bitki Geçmişini Göster'),
                     ),
                   ),
                 ],

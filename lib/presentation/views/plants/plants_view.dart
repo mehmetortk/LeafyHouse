@@ -83,66 +83,87 @@ class _PlantsViewState extends ConsumerState<PlantsView> {
     Plant plant,
     PlantsNotifier notifier,
   ) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: _buildPlantImage(plant.imageUrl),
-        radius: 30,
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
       ),
-      title: Text(plant.name),
-      subtitle: Text("Tür: ${plant.type}"),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.blueAccent),
-            onPressed: () async {
-              // Clear automation settings before navigation
-              ref.read(automationProvider.notifier).clearSettings();
-              await Navigator.pushNamed(
-                context,
-                '/automation',
-                arguments: plant,
-              ).then((_) {
-                // Refresh plants list when returning
-                final user = FirebaseAuth.instance.currentUser;
-                if (user != null) {
-                  ref.read(plantsProvider.notifier).loadPlants(user.uid);
-                }
-              });
-            },
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        leading: CircleAvatar(
+          backgroundImage: _buildPlantImage(plant.imageUrl),
+          radius: 30,
+        ),
+        title: Text(
+          plant.name,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 6.0),
+          child: Text(
+            "Tür: ${plant.type}",
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
           ),
-          IconButton(
-            icon: const Icon(Icons.edit, color: Colors.blue),
-            onPressed: () async {
-              final updatedPlant = await Navigator.pushNamed(
-                context,
-                '/plantEdit',
-                arguments: plant,
-              );
-              if (updatedPlant != null && updatedPlant is Plant) {
-                await notifier.updateExistingPlant(updatedPlant);
-                showSuccessMessage(
-                  context,
-                  "${updatedPlant.name} başarıyla güncellendi.",
-                );
-              }
-            },
+        ),
+        trailing: FittedBox(
+          child: Row(
+            children: [
+              IconButton(
+                tooltip: "Ayarlar",
+                icon: const Icon(Icons.settings, color: Colors.blueAccent),
+                onPressed: () async {
+                  // Clear automation settings before navigation
+                  ref.read(automationProvider.notifier).clearSettings();
+                  await Navigator.pushNamed(
+                    context,
+                    '/automation',
+                    arguments: plant,
+                  ).then((_) {
+                    // Refresh plants list when returning
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user != null) {
+                      ref.read(plantsProvider.notifier).loadPlants(user.uid);
+                    }
+                  });
+                },
+              ),
+              IconButton(
+                tooltip: "Düzenle",
+                icon: const Icon(Icons.edit, color: Colors.blue),
+                onPressed: () async {
+                  final updatedPlant = await Navigator.pushNamed(
+                    context,
+                    '/plantEdit',
+                    arguments: plant,
+                  );
+                  if (updatedPlant != null && updatedPlant is Plant) {
+                    await notifier.updateExistingPlant(updatedPlant);
+                    showSuccessMessage(
+                      context,
+                      "${updatedPlant.name} başarıyla güncellendi.",
+                    );
+                  }
+                },
+              ),
+              IconButton(
+                tooltip: "Sil",
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () {
+                  _showDeleteConfirmationDialog(plant.id, plant);
+                },
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () {
-              _showDeleteConfirmationDialog(plant.id, plant);
-            },
-          ),
-        ],
+        ),
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            '/plantInfoDetails',
+            arguments: plant,
+          );
+        },
       ),
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          '/plantInfoDetails',
-          arguments: plant,
-        );
-      },
     );
   }
 
@@ -158,16 +179,16 @@ class _PlantsViewState extends ConsumerState<PlantsView> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Plant'),
-        content: const Text('Are you sure you want to delete this plant?'),
+        title: const Text('Bitkiyi Sil'),
+        content: const Text('Bu bitkiyi silmek istediğinize emin misiniz?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -178,12 +199,12 @@ class _PlantsViewState extends ConsumerState<PlantsView> {
         await ref.read(plantsProvider.notifier).removePlant(plantId, plant);
 
         if (mounted) {
-          showSuccessMessage(context, 'Plant deleted successfully');
+          showSuccessMessage(context, 'Bitki başarı ile silindi.');
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error deleting plant: $e')),
+            SnackBar(content: Text('Bitkiyi silerken hata: $e')),
           );
         }
       }

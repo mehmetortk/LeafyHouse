@@ -26,19 +26,18 @@ class AddPlantView extends ConsumerWidget {
         return;
       }
 
-      // Kullanıcı ID'sini alın
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         showErrorMessage(context, "Oturum açmış bir kullanıcı bulunamadı.");
         return;
       }
 
-      final userId = user.uid; // Firebase'den kullanıcı ID'sini çekiyoruz
+      final userId = user.uid;
 
       final notifier = ref.read(plantsProvider.notifier);
       final plant = Plant(
         id: '', // Firestore tarafından otomatik atanacak
-        userId: userId, // Kullanıcı ID'sini buraya ekliyoruz
+        userId: userId, 
         name: nameController.text,
         type: typeController.text,
         imageUrl: '', // Görsel URL'si daha sonra güncellenecek
@@ -53,29 +52,83 @@ class AddPlantView extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Yeni Bitki Ekle")),
+      appBar: AppBar(
+        title: const Text("Yeni Bitki Ekle"),
+        backgroundColor: Colors.white,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: "Bitki Adı"),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: typeController,
-                decoration: const InputDecoration(labelText: "Bitki Türü"),
-              ),
-              const SizedBox(height: 10),
-              ImagePickerWidget(
-                onImageSelected: onImageSelected,
+              // Form fields in Card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: nameController,
+                        decoration: InputDecoration(
+                          labelText: "Bitki Adı",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: const Icon(Icons.nature),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: typeController,
+                        decoration: InputDecoration(
+                          labelText: "Bitki Türü",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: const Icon(Icons.local_florist),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
+              // Image Picker Card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ImagePickerWidget(
+                    onImageSelected: onImageSelected,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+              // Save Button
+              ElevatedButton.icon(
                 onPressed: savePlant,
-                child: const Text("Bitkiyi Kaydet"),
+                icon: const Icon(Icons.save, color: Colors.white),
+                label: const Text(
+                  "Bitkiyi Kaydet",
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  textStyle:
+                      const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
             ],
           ),

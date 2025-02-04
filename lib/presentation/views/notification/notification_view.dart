@@ -11,7 +11,7 @@ class NotificationsView extends ConsumerWidget {
   const NotificationsView({Key? key}) : super(key: key);
 
   String _formatDate(DateTime date) {
-    // Örneğin: 02/02/2025 14:30:15 (salise olmadan)
+    // Format: dd/MM/yyyy HH:mm:ss
     return DateFormat('dd/MM/yyyy HH:mm:ss').format(date);
   }
 
@@ -24,82 +24,136 @@ class NotificationsView extends ConsumerWidget {
         : allNotifications;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Bildirimler")),
-      body: Column(
-        children: [
-          // Checkbox to filter unread notifications
-          CheckboxListTile(
-            title: const Text("Sadece okunmamışları göster"),
-            value: unreadOnly,
-            onChanged: (value) =>
-                ref.read(unreadOnlyProvider.notifier).state = value ?? false,
-          ),
-          Expanded(
-            child: notifications.isEmpty
-                ? const Center(child: Text("Henüz bildirim yok."))
-                : ListView.builder(
-                    itemCount: notifications.length,
-                    itemBuilder: (context, index) {
-                      final item = notifications[index];
-                      return Dismissible(
-                        key: UniqueKey(),
-                        background: Container(
-                          color: Colors.red,
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: const Icon(Icons.delete, color: Colors.white),
+      appBar: AppBar(
+        title: const Text("Bildirimler"),
+        backgroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 4,
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Simulate refresh; you may add your refresh logic here.
+          await Future.delayed(const Duration(seconds: 1));
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              // Filter Card
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Card(
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: CheckboxListTile(
+                    title: const Text("Sadece okunmamışları göster"),
+                    value: unreadOnly,
+                    activeColor: Colors.green,
+                    onChanged: (value) =>
+                        ref.read(unreadOnlyProvider.notifier).state = value ?? false,
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                ),
+              ),
+              // Notification List
+              notifications.isEmpty
+                  ? const Padding(
+                      padding: EdgeInsets.only(top: 50),
+                      child: Center(
+                        child: Text(
+                          "Henüz bildirim yok.",
+                          style: TextStyle(fontSize: 18, color: Colors.black54),
                         ),
-                        direction: DismissDirection.endToStart,
-                        onDismissed: (_) {
-                          ref
-                              .read(notificationsProvider.notifier)
-                              .removeNotification(item);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          child: Card(
-                            elevation: 2,
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.all(12),
-                              title: Text(
-                                item.message,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: item.isRead ? Colors.grey : Colors.black,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                      ),
+                    )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: notifications.length,
+                      itemBuilder: (context, index) {
+                        final item = notifications[index];
+                        return Dismissible(
+                          key: UniqueKey(),
+                          background: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          direction: DismissDirection.endToStart,
+                          onDismissed: (_) {
+                            ref
+                                .read(notificationsProvider.notifier)
+                                .removeNotification(item);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            child: Card(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              subtitle: Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  _formatDate(item.date),
-                                  style: const TextStyle(
-                                    color: Colors.black54,
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(12),
+                                leading: Icon(
+                                  item.isRead
+                                      ? Icons.mark_email_read
+                                      : Icons.mark_email_unread,
+                                  color: item.isRead ? Colors.grey : Colors.green,
+                                  size: 28,
+                                ),
+                                title: Text(
+                                  item.message,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: item.isRead ? Colors.grey : Colors.black,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ),
-                              onTap: () {
-                                if (!item.isRead) {
-                                  ref
-                                      .read(notificationsProvider.notifier)
-                                      .markAsRead(item);
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    _formatDate(item.date),
+                                    style: const TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                                trailing: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 16,
+                                  color: Colors.black38,
+                                ),
+                                onTap: () {
+                                  if (!item.isRead) {
+                                    ref
+                                        .read(notificationsProvider.notifier)
+                                        .markAsRead(item);
+                                  }
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (_) => PlantsView()),
+                                      builder: (_) =>  PlantsView(),
+                                    ),
                                   );
-                                }
-                              },
+                                },
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
+                        );
+                      },
+                    ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

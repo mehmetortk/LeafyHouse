@@ -18,11 +18,10 @@ class _MainNavigationBarState extends State<MainNavigationBar> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    HomeView(),
-    PlantsView(),
-    NotificationsView(),
-    SettingsView(), 
-   
+     HomeView(),
+     PlantsView(),
+     NotificationsView(),
+     SettingsView(),
   ];
 
   void _onItemTapped(int index) {
@@ -42,7 +41,7 @@ class _MainNavigationBarState extends State<MainNavigationBar> {
             label: 'Ana Sayfa',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.grass),
+            icon: Icon(Icons.local_florist),
             label: 'Bitkilerim',
           ),
           BottomNavigationBarItem(
@@ -80,12 +79,15 @@ class _MainNavigationBarState extends State<MainNavigationBar> {
             icon: Icon(Icons.settings),
             label: 'Ayarlar',
           ),
-         
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.green,
         unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
+        backgroundColor: Colors.white,
+        elevation: 10,
       ),
     );
   }
