@@ -89,7 +89,7 @@ class HomeView extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark 
-              ? [const Color(0xFF1B1B1B), const Color(0xFF2E7D32).withOpacity(0.8)]
+              ? [const Color(0xFF121212), const Color(0xFF1E1E1E)] // Daha profesyonel koyu tonlar
               : [const Color(0xFFE8F5E9), const Color(0xFFA5D6A7).withOpacity(0.5)],
           ),
         ),
@@ -107,11 +107,15 @@ class HomeView extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 20),
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.black.withOpacity(0.5) : Colors.white.withOpacity(0.9),
+                      color: isDark 
+                        ? const Color(0xFF1E1E1E) // Daha soft koyu renk
+                        : Colors.white.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
-                          color: isDark ? Colors.black.withOpacity(0.3) : Colors.green.withOpacity(0.1),
+                          color: isDark 
+                            ? Colors.black.withOpacity(0.5)
+                            : Colors.green.withOpacity(0.1),
                           blurRadius: 20,
                           spreadRadius: 5,
                         ),
@@ -138,7 +142,7 @@ class HomeView extends StatelessWidget {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: isDark
-                                  ? [const Color(0xFF2E7D32), const Color(0xFF1B5E20)]
+                                  ? [const Color(0xFF388E3C), const Color(0xFF2E7D32)] // Daha soft yeşil tonları
                                   : [const Color(0xFF81C784), const Color(0xFF2E7D32)],
                             ),
                           ),
@@ -162,7 +166,7 @@ class HomeView extends StatelessWidget {
                               foreground: Paint()
                                 ..shader = LinearGradient(
                                   colors: isDark
-                                      ? [const Color(0xFF81C784), const Color(0xFF2E7D32)]
+                                      ? [const Color(0xFF4CAF50), const Color(0xFF388E3C)] // Daha parlak yeşil tonları
                                       : [const Color(0xFF2E7D32), const Color(0xFF1B5E20)],
                                 ).createShader(
                                   const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
@@ -179,7 +183,9 @@ class HomeView extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w500,
-                              color: isDark ? const Color(0xFF81C784) : const Color(0xFF2E7D32),
+                              color: isDark 
+                                ? const Color(0xFF66BB6A) // Daha parlak yeşil
+                                : const Color(0xFF2E7D32),
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -208,7 +214,7 @@ class HomeView extends StatelessWidget {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: isDark
-                                ? [Colors.green.shade700, Colors.green.shade900]
+                                ? [const Color(0xFF388E3C), const Color(0xFF2E7D32)] // Daha soft yeşil geçişi
                                 : [Colors.teal, Colors.green.shade600],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -249,7 +255,9 @@ class HomeView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? const Color(0xFF81C784) : const Color(0xFF2E7D32),
+                      color: isDark 
+                        ? const Color(0xFF66BB6A) // Daha parlak yeşil
+                        : const Color(0xFF2E7D32),
                       letterSpacing: 0.5,
                     ),
                   ),

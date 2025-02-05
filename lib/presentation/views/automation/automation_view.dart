@@ -146,14 +146,19 @@ class _AutomationViewState extends ConsumerState<AutomationView> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
-            Theme.of(context).scaffoldBackgroundColor,
-        title: Text(plant?.name ?? "Otomasyon Ayarları"),
+        title: Text(
+          plant?.name ?? "Otomasyon Ayarları",
+          style: const TextStyle(fontSize: 20, color: Colors.white),
+        ),
+        backgroundColor: isDark 
+            ? const Color(0xFF1E1E1E)  // Dark mode için koyu gri
+            : const Color(0xFF2E7D32), // Light mode için yeşil
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.info_outline,
-              color: isDark ? Colors.white : Colors.green[900],
+              color: Colors.white,
             ),
             onPressed: showInfoDialog,
           )

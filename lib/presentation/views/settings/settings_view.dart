@@ -12,16 +12,24 @@ class SettingsView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authNotifier = ref.read(authProvider.notifier);
     final authState = ref.watch(authProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Ayarlar"),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
-            Theme.of(context).scaffoldBackgroundColor,
+        title: Text(
+          "Ayarlar",
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
+        backgroundColor: isDark 
+            ? const Color(0xFF1E1E1E) // Dark mod için koyu gri
+            : const Color(0xFF2E7D32), // Light mod için yeşil
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.info_outline),
+            icon: const Icon(
+              Icons.info_outline,
+              color: Colors.white,
+            ),
             onPressed: () {
               Navigator.push(
                 context,

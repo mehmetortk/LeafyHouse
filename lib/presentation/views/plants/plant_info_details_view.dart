@@ -234,10 +234,13 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
       appBar: AppBar(
         title: Text(
           plant!.name,
-          style: Theme.of(context).appBarTheme.titleTextStyle,
+          style: const TextStyle(color: Colors.white, fontSize: 20),
         ),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        elevation: 2,
+        backgroundColor: isDark 
+            ? const Color(0xFF1E1E1E)  // Dark mode için koyu gri
+            : const Color(0xFF2E7D32), // Light mode için yeşil
+        centerTitle: true,
+        elevation: isDark ? 0 : 2,
       ),
       backgroundColor: isDark ? Colors.black : Colors.grey[100],
       body: latestImageUrl == null
@@ -318,105 +321,111 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
                     ),
                     color: isDark ? Colors.grey[850] : Colors.white,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: isDark
-                                          ? [Colors.blueGrey, Colors.blue]
-                                          : [Colors.greenAccent, Colors.green],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.opacity,
-                                    size: 30,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  '%$moisture',
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : Colors.green[900],
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Nem',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: isDark ? Colors.white70 : Colors.grey[800],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            height: 80,
-                            width: 1,
-                            color: isDark ? Colors.white30 : Colors.grey[300],
-                          ),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: isDark
-                                          ? [Colors.deepOrange, Colors.orange]
-                                          : [Colors.greenAccent, Colors.green],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.health_and_safety,
-                                    size: 30,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        health_status,
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: isDark ? Colors.white : Colors.black,
-                                        ),
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12), // vertical padding'i arttırdık
+                      child: IntrinsicHeight( // IntrinsicHeight ekledikxw
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Row( // Column yerine Row kullandık
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12), // Padding'i azalttık
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: isDark
+                                            ? [Colors.blueGrey, Colors.blue]
+                                            : [Colors.lightBlue[300]!, Colors.blue], // Light modda mavi tonları
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      _getHealthEmoji(health_status),
-                                      style: const TextStyle(fontSize: 24),
+                                    child: const Icon(
+                                      Icons.opacity,
+                                      size: 24, // Icon boyutunu küçülttük
+                                      color: Colors.white,
                                     ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Column( // İç içe Column
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '%$moisture',
+                                        style: TextStyle(
+                                          fontSize: 20, // Font boyutunu küçülttük
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark ? Colors.white : Colors.green[900],
+                                        ),
+                                      ),
+                                      Text(
+                                        'Nem',
+                                        style: TextStyle(
+                                          fontSize: 14, // Font boyutunu küçülttük
+                                          color: isDark ? Colors.white70 : Colors.grey[800],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                            Container(
+                              height: 100, // Yüksekliği arttırdık
+                              width: 1,
+                              color: isDark ? Colors.white30 : Colors.grey[300],
+                            ),
+                            Expanded(
+                              child: Row( // Column yerine Row kullandık
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12), // Padding'i azalttık
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: isDark
+                                            ? [Colors.deepOrange, Colors.orange]
+                                            : [Colors.orange[300]!, Colors.deepOrange], // Light modda turuncu tonları
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.health_and_safety,
+                                      size: 24, // Icon boyutunu küçülttük
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded( // Sağlık durumu metni için Expanded
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            health_status,
+                                            maxLines: 4, // Maksimum satır sayısını arttırdık
+                                            overflow: TextOverflow.ellipsis, // Taşma durumunda ...
+                                            style: TextStyle(
+                                              fontSize: 12, // Font boyutunu küçülttük
+                                              height: 1.3, // Satır aralığını ayarladık
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark ? Colors.white : Colors.black87,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -455,6 +464,37 @@ class _PlantInfoDetailsViewState extends ConsumerState<PlantInfoDetailsView> {
                           ),
                         );
                       },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.grey[850] : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 5,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Bitki Durumu',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _getHealthEmoji(health_status),
+                          style: const TextStyle(fontSize: 40),
+                        ),
+                      ],
                     ),
                   ),
                 ],

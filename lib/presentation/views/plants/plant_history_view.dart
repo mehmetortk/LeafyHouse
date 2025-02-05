@@ -240,14 +240,18 @@ class _PlantHistoryViewState extends State<PlantHistoryView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bitki Geçmişi'),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
-            Theme.of(context).scaffoldBackgroundColor,
+        title: const Text(
+          'Bitki Geçmişi',
+          style: TextStyle(color: Colors.white, fontSize: 20),
+        ),
+        backgroundColor: isDark 
+            ? const Color(0xFF1E1E1E)  // Dark mod için koyu gri
+            : const Color(0xFF2E7D32), // Light mod için yeşil
         centerTitle: true,
-        elevation: 4,
+        elevation: isDark ? 0 : 2,
         actions: [
           IconButton(
-            icon: const Icon(Icons.info_outline),
+            icon: const Icon(Icons.info_outline, color: Colors.white),
             onPressed: () => _showInfoDialog(isDark),
           ),
         ],

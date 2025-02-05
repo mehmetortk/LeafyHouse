@@ -41,11 +41,16 @@ class _PlantsViewState extends ConsumerState<PlantsView> {
       appBar: AppBar(
         title: Text(
           "Bitkilerim",
-          style: Theme.of(context).appBarTheme.titleTextStyle,
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? 
-            Theme.of(context).scaffoldBackgroundColor,
-        elevation: 4,
+        backgroundColor: isDark 
+          ? const Color(0xFF1E1E1E)  // Dark mode için koyu gri
+          : const Color(0xFF2E7D32), // Light mode için yeşil
+        elevation: isDark ? 0 : 2,
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
@@ -62,7 +67,9 @@ class _PlantsViewState extends ConsumerState<PlantsView> {
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? Colors.green.shade700 : Colors.green,
+                backgroundColor: isDark 
+                  ? const Color(0xFF388E3C)  // Dark mode için koyu yeşil
+                  : Colors.white.withOpacity(0.2), // Light mode için yarı saydam beyaz
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 shape: RoundedRectangleBorder(

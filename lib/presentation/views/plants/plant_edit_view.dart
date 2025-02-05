@@ -74,11 +74,12 @@ class _PlantEditViewState extends ConsumerState<PlantEditView> {
       appBar: AppBar(
         title: Text(
           "${plant.name} Düzenle",
-          style: Theme.of(context).appBarTheme.titleTextStyle,
+          style: const TextStyle(fontSize: 20, color: Colors.white),
         ),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
-            Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
+        backgroundColor: isDark 
+            ? const Color(0xFF1E1E1E)  // Dark mode için koyu gri
+            : const Color(0xFF2E7D32), // Light mode için yeşil
+        elevation: isDark ? 0 : 2,
         centerTitle: true,
       ),
       backgroundColor: isDark ? Colors.black : Colors.grey[100],

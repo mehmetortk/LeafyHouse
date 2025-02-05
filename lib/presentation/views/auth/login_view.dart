@@ -34,9 +34,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
   Future<void> _onLoginPressed() async {
     await ref.read(authProvider.notifier).login(
-      emailController.text.trim(),
-      passwordController.text.trim(),
-    );
+          emailController.text.trim(),
+          passwordController.text.trim(),
+        );
     final authState = ref.read(authProvider);
     if (authState.user != null) {
       if (rememberMe) {
@@ -55,141 +55,170 @@ class _LoginViewState extends ConsumerState<LoginView> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.teal.shade300, Colors.teal.shade700],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: isDark 
+                  ? [Colors.grey.shade900, Colors.black]
+                  : [Colors.green.shade300, Colors.green.shade700],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              child: Card(
-                elevation: 10,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                margin: EdgeInsets.symmetric(horizontal: 16),
-                child: Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Center(
-                        child: Text(
-                          "Giriş Yap",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.teal.shade700,
+          child: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                child: Card(
+                  color: isDark ? Colors.grey[850] : Colors.white,
+                  elevation: 10,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Center(
+                          child: Text(
+                            "Giriş Yap",
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.greenAccent : Colors.green.shade700,
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(height: 20),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(70.0),
-                        child: Image.asset(
-                          'assets/images/app_logo.png',
-                          height: 120,
-                          width: 120,
-                        ),
-                      ),
-                      SizedBox(height: 30),
-                      TextField(
-                        controller: emailController,
-                        decoration: InputDecoration(
-                          labelText: "E-posta",
-                          prefixIcon: Icon(Icons.email, color: Colors.teal),
-                          filled: true,
-                          fillColor: Colors.grey.shade200,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide.none,
+                        const SizedBox(height: 20),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(70.0),
+                          child: Image.asset(
+                            'assets/images/app_logo.png',
+                            height: 120,
+                            width: 120,
                           ),
                         ),
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      SizedBox(height: 20),
-                      TextField(
-                        controller: passwordController,
-                        decoration: InputDecoration(
-                          labelText: "Şifre",
-                          prefixIcon: Icon(Icons.lock, color: Colors.teal),
-                          filled: true,
-                          fillColor: Colors.grey.shade200,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide.none,
+                        const SizedBox(height: 30),
+                        TextField(
+                          controller: emailController,
+                          decoration: InputDecoration(
+                            labelText: "E-posta",
+                            labelStyle: TextStyle(
+                              color: isDark ? Colors.greenAccent : Colors.green,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.email,
+                              color: isDark ? Colors.greenAccent : Colors.green,
+                            ),
+                            filled: true,
+                            fillColor: isDark ? Colors.grey[800] : Colors.grey.shade200,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                              borderSide: BorderSide.none,
+                            ),
                           ),
+                          keyboardType: TextInputType.emailAddress,
                         ),
-                        obscureText: true,
-                      ),
-                      SizedBox(height: 20),
-                      CheckboxListTile(
-                        value: rememberMe,
-                        onChanged: (value) {
-                          setState(() {
-                            rememberMe = value ?? false;
-                          });
-                        },
-                        title: Text("Beni Hatırla"),
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
-                      authState.isLoading
-                          ? Center(child: CircularProgressIndicator())
-                          : Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12.0),
-                                gradient: LinearGradient(
-                                  colors: [Colors.teal, Colors.teal.shade700],
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 4,
-                                    offset: Offset(2, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: passwordController,
+                          decoration: InputDecoration(
+                            labelText: "Şifre",
+                            labelStyle: TextStyle(
+                              color: isDark ? Colors.greenAccent : Colors.green,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.lock,
+                              color: isDark ? Colors.greenAccent : Colors.green,
+                            ),
+                            filled: true,
+                            fillColor: isDark ? Colors.grey[800] : Colors.grey.shade200,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          obscureText: true,
+                        ),
+                        const SizedBox(height: 20),
+                        CheckboxListTile(
+                          value: rememberMe,
+                          onChanged: (value) {
+                            setState(() {
+                              rememberMe = value ?? false;
+                            });
+                          },
+                          title: Text(
+                            "Beni Hatırla",
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black,
+                            ),
+                          ),
+                          controlAffinity: ListTileControlAffinity.leading,
+                        ),
+                        authState.isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(12.0),
-                                  onTap: _onLoginPressed,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                                    child: Center(
-                                      child: Text(
-                                        "Giriş Yap",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
+                                  gradient: LinearGradient(
+                                    colors: isDark 
+                                        ? [Colors.green.shade700, Colors.green.shade900]
+                                        : [Colors.green, Colors.green.shade700],
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 4,
+                                      offset: Offset(2, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    onTap: _onLoginPressed,
+                                    child: const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                                      child: Center(
+                                        child: Text(
+                                          "Giriş Yap",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
+                        const SizedBox(height: 10),
+                        TextButton(
+                          onPressed: () => Navigator.pushNamed(context, '/register'),
+                          child: Text(
+                            "Hesabınız Yok mu? Kayıt Ol",
+                            style: TextStyle(
+                              color: isDark ? Colors.greenAccent : Colors.green.shade700,
+                              fontWeight: FontWeight.w500,
                             ),
-                      SizedBox(height: 10),
-                      TextButton(
-                        onPressed: () => Navigator.pushNamed(context, '/register'),
-                        child: Text(
-                          "Hesabınız Yok mu? Kayıt Ol",
-                          style: TextStyle(
-                            color: Colors.teal.shade700,
-                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

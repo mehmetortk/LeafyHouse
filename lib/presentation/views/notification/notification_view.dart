@@ -17,8 +17,13 @@ class NotificationsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final allNotifications = ref.watch(notificationsProvider);
+    var allNotifications = ref.watch(notificationsProvider);
     final unreadOnly = ref.watch(unreadOnlyProvider);
+    
+    // Bildirimleri tarihe göre sırala (en yeniden en eskiye)
+    allNotifications = allNotifications.toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+      
     final notifications = unreadOnly
         ? allNotifications.where((n) => !n.isRead).toList()
         : allNotifications;
@@ -29,10 +34,15 @@ class NotificationsView extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Bildirimler"),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
-            Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: isDark 
+            ? const Color(0xFF1E1E1E)  // Dark mode için koyu gri
+            : const Color(0xFF2E7D32), // Light mode için yeşil
         centerTitle: true,
-        elevation: 4,
+        elevation: isDark ? 0 : 4,
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -73,7 +83,7 @@ class NotificationsView extends ConsumerWidget {
                       padding: const EdgeInsets.only(top: 50),
                       child: Center(
                         child: Text(
-                          "Henüz bildirim yok.",
+                          "Henüz okunmamış bir bildirim yok.",
                           style: TextStyle(
                             fontSize: 18,
                             color: noNotificationTextColor,
@@ -99,10 +109,11 @@ class NotificationsView extends ConsumerWidget {
                           subtitleTextColor = item.isRead ? Colors.grey : Colors.white;
                           trailingIconColor = item.isRead ? Colors.grey : Colors.white70;
                         } else {
-                          leadingIconColor = item.isRead ? Colors.grey : Theme.of(context).colorScheme.secondary;
+                          // Light mode için renk güncellemeleri
+                          leadingIconColor = item.isRead ? Colors.grey : Colors.green; // Okunmamış bildirimler için yeşil
                           titleTextColor = item.isRead ? Colors.grey : Colors.black;
                           subtitleTextColor = item.isRead ? Colors.grey : Colors.black54;
-                          trailingIconColor = item.isRead ? Colors.black38 : Theme.of(context).colorScheme.secondary;
+                          trailingIconColor = item.isRead ? Colors.black38 : Colors.green; // Ok işareti de yeşil olsun
                         }
                         
                         return Dismissible(

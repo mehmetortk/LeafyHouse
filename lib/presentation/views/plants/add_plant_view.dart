@@ -54,11 +54,15 @@ class AddPlantView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Yeni Bitki Ekle"),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
-            Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
+        title: const Text(
+          "Yeni Bitki Ekle",
+          style: TextStyle(color: Colors.white, fontSize: 20),
+        ),
+        backgroundColor: isDark 
+            ? const Color(0xFF1E1E1E) // Dark mod için koyu gri
+            : const Color(0xFF2E7D32), // Light mod için yeşil
         centerTitle: true,
+        elevation: isDark ? 0 : 2,
       ),
       backgroundColor: isDark ? Colors.black : Colors.grey[100],
       body: SafeArea(
